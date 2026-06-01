@@ -1,0 +1,58 @@
+---
+title: "B TAJ DPM Tutorial"
+author: "Rong Wu"
+date: "2026-06-01"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(matrixStats)
+library(ggplot2)
+source('model/data_gen_new.R')
+source('model/dweibull3.R')
+source('model/data_compile bivariate.R')
+source('model/bayesian dpm bivariate plus survival.R')
+source('model/mcmc_AF_slice bivariate.R')
+source('model/cumulative_trapz.R')
+source('model/simu.R')
+```
+
+
+```{r gene_data, warning=FALSE, message=FALSE}
+res <- simu(varying_coef_code_sim, 
+            varying_coef_code,
+            n_subjects = 1000,
+            sa = 8,
+            sy = 0.10,
+            outer_iter = 1,
+            niter = 2000, nburnin = 1000, #thin = 1, 
+            nchains = 1,
+            save_res = F)
+
+```
+
+```{r eval}
+dta1 <- data.frame(SUVR = res$simudata$cModelsim$y_sparse_amy, dage = res$simudata$cModelsim$dd_amy,
+                  age_at_scan = res$simudata$cModelsim$t_amy, RID = res$simudata$constants$subject_amy)
+
+
+ggplot(dta1, aes(x = age_at_scan, y = SUVR, group = RID, color = factor(RID))) +
+  geom_point(alpha = 0.4) +
+  geom_line(alpha = 0.4) +
+  geom_hline(yintercept = 1, color = "black", linetype = "dashed") +
+  xlab("Age (years)") +
+  ylab("SUVR") +
+  ggtitle("Amyloid SUVR") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+alpha_amy_est <- colMedians(res$res$samples[,grep("alpha", colnames(res$res$samples))][,seq(1, 2000, by = 2)])
+plot(res$simudata$cModelsim$alpha[1, ], alpha_amy_est, xlab = "Ground Truth", ylab = "Posterior Medians")
+abline(0, 1)
+
+```
+
+
