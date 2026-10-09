@@ -1,7 +1,9 @@
 ---
 title: "Single simulation subject posterior prediction"
 author: "B-TAJ"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 This follows the Tutorial simulation, then applies the single-subject
@@ -21,7 +23,7 @@ and the subject's two random effects are estimated.
 # observed <- prediction$observed
 # alpha_post <- prediction$alpha_post
 # trajectory_plot <- prediction$trajectory_plot
-
+library(matrixStats)
 source("model/data_gen_new.R")
 source("model/dweibull3.R")
 source("model/data_compile bivariate.R")
@@ -32,7 +34,17 @@ source("model/simu.R")
 ```
 
 ```{r generate single subject}
-data_1 <- generate_d1(n_subjects = 10,
+res <- simu(varying_coef_code_sim, 
+            varying_coef_code,
+            n_subjects = 1000,
+            sa = 8,
+            sy = 0.10,
+            outer_iter = 1,
+            niter = 2000, nburnin = 1000, #thin = 1, 
+            nchains = 1,
+            save_res = F)
+
+data_1 <- generate_d1(n_subjects = 2,
                           scenario = 1,
                           K = 8, 
                           Kd = 8,
@@ -47,10 +59,9 @@ data_1 <- generate_d1(n_subjects = 10,
                           C = NULL)
     
 simudata <- generate_vc(varying_coef_code_sim, data_1, 
-                            scenario = scenario, #iter = i,
-                            save_data = save_data, root = root)
+                            scenario = 1, #iter = i,
+                            save_data = FALSE, root = NULL)
     
-# construct survival 
 subject_id <- data_1$constants$subject_tau
 subject_tau <- simudata$constants$subject_tau
 cModelsim <- simudata$cModelsim
@@ -61,13 +72,13 @@ data_surv <- data.frame(subject_id, cModelsim$y_sparse_tau, cModelsim$tt) |>
       slice_min(cModelsim.tt, n=1, with_ties = F) |>
       ungroup()
 
-    data_surv$censored <- rbinom(nrow(data_surv),1, prob=0.3)
-    data_surv$thresh <- 0
-    data_surv$thresh[which(data_surv$cModelsim.y_sparse_tau >= 1)] <- 1
-    data_surv$t <- data_surv$cModelsim.tt
-    data_surv$c <- data_surv$cModelsim.tt
-    data_surv$t[data_surv$censored == 1] <- NA
-    data_surv$c[data_surv$censored == 0] <- Inf
+data_surv$censored <- rbinom(nrow(data_surv),1, prob=0.3)
+data_surv$thresh <- 0
+data_surv$thresh[which(data_surv$cModelsim.y_sparse_tau >= 1)] <- 1
+data_surv$t <- data_surv$cModelsim.tt
+data_surv$c <- data_surv$cModelsim.tt
+data_surv$t[data_surv$censored == 1] <- NA
+data_surv$c[data_surv$censored == 0] <- Inf
     
     
     n_subjects <- data_1$constants$n_subjects
@@ -114,10 +125,9 @@ data_surv <- data.frame(subject_id, cModelsim$y_sparse_tau, cModelsim$tt) |>
     simudata$constants$min_t_tau <- min_t_tau
     
     simudata$data$constraint_alpha_tau <- simudata$data$constraint_alpha_amy
-    
-simudata_pred <- list(constants = constants, data = data, inits = inits)
-
-
+# Format data
+#simudata_pred <- list(constants = constants, data = data, inits = inits)
+simudata_pred <- simudata
 samples <- res$res$samples
 f_pred_amy <- (samples[,grep("f_pred_amy", colnames(samples))]) 
 f_pred_tau <- (samples[,grep("f_pred_tau", colnames(samples))]) 
@@ -133,8 +143,8 @@ sigma_y_tau <- (samples[, grepl("sigma_y_tau", colnames(samples)), drop = FALSE]
 
 rho <- (samples[, grepl("rho", colnames(samples)), drop = FALSE])
 
-
-simudata$data <- c(
+simudata_cv <- simudata
+simudata_cv$data <- c(
   simudata_cv$data,
   list(
     f_pred_amy = (f_pred_amy),
@@ -152,6 +162,57 @@ simudata$data <- c(
   )
 )
 
+# Constants
+simudata_cv$constants$n_mcmc <- length(rho)
+simudata_cv$constants$n_post <- simudata_pred$constants$n_subjects_amy
+simudata_cv$constants$N_amy  <- simudata_pred$constants$N_amy
+simudata_cv$constants$N_tau  <- simudata_pred$constants$N_tau
+
+# Data
+simudata_cv$data$y_pred_amy <- simudata_pred$data$y_pred_amy 
+simudata_cv$data$y_pred_tau <- simudata_pred$data$y_pred_tau
+
+simudata_cv$data$t_amy <- simudata_pred$data$t_amy
+simudata_cv$data$t_tau <- simudata_pred$data$t_tau
+
+simudata_cv$constants$Xsub_amy  <- simudata_pred$constants$Xsub_amy 
+
+# Constraint
+simudata_cv$constants$subject_amy  <- simudata_pred$constants$subject_amy 
+simudata_cv$constants$subject_tau  <- simudata_pred$constants$subject_tau
+simudata_cv$constants$tau_amy_link <- simudata_pred$constants$tau_amy_link
+simudata_cv$data$constraint_alpha_amy <- rep(1, simudata_pred$constants$n_subjects_amy)
+simudata_cv$data$constraint_alpha_tau <- rep(1, simudata_pred$constants$n_subjects_amy)
+
+# Subject-specific boundaries for the dconstraint loops
+simudata_cv$constants$max_t_amy <- simudata_pred$constants$max_t_amy
+simudata_cv$constants$min_t_amy <- simudata_pred$constants$min_t_amy
+
+max_t_tau <- rep(NA, simudata_pred$constants$n_subjects_amy)
+min_t_tau <- rep(NA, simudata_pred$constants$n_subjects_amy)
+
+tau_subjects <- sort(unique(simudata_pred$constants$tau_amy_link))
+tau_positions <- match(
+  tau_subjects,
+  sort(unique(simudata_pred$constants$subject_tau))
+)
+max_t_tau[tau_subjects] <- simudata_pred$constants$max_t_tau[tau_positions]
+min_t_tau[tau_subjects] <- simudata_pred$constants$min_t_tau[tau_positions]
+
+max_t_tau[-simudata_pred$constants$tau_amy_link] <- 0
+min_t_tau[-simudata_pred$constants$tau_amy_link] <- 140
+
+simudata_cv$constants$max_t_tau <- max_t_tau
+simudata_cv$constants$min_t_tau <- min_t_tau
+
+# inits
+simudata_cv$inits$gamma_amy <- NULL
+simudata_cv$inits$gamma_tau <- NULL
+simudata_cv$inits$alpha <- matrix(NA, nrow = 2, ncol = simudata_pred$constants$n_subjects_amy)
+simudata_cv$inits$alpha[1, ] <- simudata_pred$inits$alpha[1,]
+simudata_cv$inits$alpha[2, ] <- simudata_pred$inits$alpha[2,]
+
+
 
 ```
 
@@ -160,10 +221,12 @@ simudata$data <- c(
 source('posterior code/real data mcmc_posterior.R')
 source('posterior code/posterior predictive distribution.R')
 posterior_res_forward <- mcchains(posterior_predictions_code,
-                                  simudata,
-                                  monitors = c("alpha", "gamma_amy_post", "rho_post"),
-                                  niter = 200,
-                                  nburnin = 100,
+                                  simudata_cv,
+                                  monitors = c("alpha", "gamma_amy_post", "gamma_tau_post",
+                                               "f_pred_amy_post", "f_pred_tau_post",
+                                               "rho_post"),
+                                  niter = 2000,
+                                  nburnin = 1000,
                                   thin = 1,
                                   nchains = 1,
                                   fullres = TRUE)
@@ -171,20 +234,64 @@ posterior_res_forward <- mcchains(posterior_predictions_code,
 
 ```
 
-The selected subject is `r readRDS(file.path(dirname(knitr::current_input()), "simulation_single_subject_prediction.rds"))[["subject_id"]]`. The figure follows the Tutorial/PDF
-style: observed sample points, the simulation truth (dashed), and the
-conditional posterior median with a 95% band.
+```{r threshold-prediction}
+post_samples <- posterior_res_forward$samples
+alpha_draws <- post_samples[, grep("^alpha\\[", colnames(post_samples)), drop = FALSE]
+alpha_amy <- alpha_draws[, seq(1, ncol(alpha_draws), by = 2), drop = FALSE]
+alpha_tau_all <- alpha_draws[, seq(2, ncol(alpha_draws), by = 2), drop = FALSE]
+tau_subjects <- sort(unique(simudata_cv$constants$tau_amy_link))
+alpha_tau <- alpha_tau_all[, tau_subjects, drop = FALSE]
 
-```{r, fig.width=8, fig.height=4}
-trajectory_plot
-```
+f_amy_post <- post_samples[, grep("^f_pred_amy_post\\[", colnames(post_samples)),
+                           drop = FALSE]
+f_tau_post <- post_samples[, grep("^f_pred_tau_post\\[", colnames(post_samples)),
+                           drop = FALSE]
 
-```{r}
-data.frame(
-  random_effect = c("alpha_amy", "alpha_tau"),
-  truth = prediction$alpha_truth,
-  posterior_median = colMedians(alpha_post),
-  lower_95 = colQuantiles(alpha_post, probs = 0.025),
-  upper_95 = colQuantiles(alpha_post, probs = 0.975)
+offset_grid <- (seq_len(ncol(f_amy_post)) -
+                  simudata_cv$constants$middle_index) *
+  simudata_cv$constants$step
+
+crossing_offset <- function(trajectory, threshold, offsets) {
+  hit <- which(trajectory >= threshold)[1]
+  if (is.na(hit)) return(NA_real_)
+  if (hit == 1L) return(offsets[1])
+  stats::approx(trajectory[c(hit - 1L, hit)],
+                offsets[c(hit - 1L, hit)],
+                xout = threshold, ties = "ordered")$y
+}
+
+threshold_age <- function(trajectory_matrix, alpha_vector, threshold, offsets) {
+  vapply(seq_len(nrow(trajectory_matrix)), function(i) {
+    alpha_vector[i] +
+      crossing_offset(trajectory_matrix[i, ], threshold, offsets)
+  }, numeric(1))
+}
+
+threshold_prediction <- rbind(
+  data.frame(
+    subject = seq_len(ncol(alpha_amy)),
+    biomarker = "Amyloid SUVR",
+    posterior_median = vapply(seq_len(ncol(alpha_amy)), function(j) {
+      median(threshold_age(f_amy_post, alpha_amy[, j],
+                           simudata_cv$constants$amy_thresh, offset_grid),
+             na.rm = TRUE)
+    }, numeric(1))
+  ),
+  data.frame(
+    subject = tau_subjects,
+    biomarker = "Tau PET",
+    posterior_median = vapply(seq_len(ncol(alpha_tau)), function(j) {
+      median(threshold_age(f_tau_post, alpha_tau[, j],
+                           simudata_cv$constants$tau_thresh, offset_grid),
+             na.rm = TRUE)
+    }, numeric(1))
+  )
 )
+
+threshold_prediction
+
+post_alpha_amyf <- posterior_res_forward$samples[,grep("alpha", colnames(posterior_res_forward$samples))][, seq(1, simudata_pred$constants$n_subjects_amy*2, by = 2)]
+
+colMedians(post_alpha_amyf)
 ```
+

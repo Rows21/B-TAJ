@@ -97,16 +97,16 @@ posterior_predictions_code <- nimbleCode({
   }
   
   for(i in 1:N_tau){
-    
+
     # age since onset
-    dd_tau[i] <- (t_tau[i] - alpha[2, tau_amy_link[subject_tau[i]]])  
-    row_idx_tau[i] <- (dd_tau[i]/step + idx) 
+    dd_tau[i] <- (t_tau[i] - alpha[2, subject_tau[i]])
+    row_idx_tau[i] <- (dd_tau[i]/step + idx)
     safe_idx_tau[i] <- round(min(max(idx_bound[1], row_idx_tau[i]), idx_bound[2]))
-    
+
     # # No covariate
     f_val_tau[i] <- f_pred_tau_post[safe_idx_tau[i]]
     y_pred_tau[i] ~ dnorm(f_val_tau[i], sd = sigma_y_tau_post)
-    
+
   }
   
   

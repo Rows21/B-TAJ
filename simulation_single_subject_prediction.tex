@@ -1,0 +1,751 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Single simulation subject posterior prediction},
+  pdfauthor={B-TAJ},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Single simulation subject posterior prediction}
+\author{B-TAJ}
+\date{}
+
+\begin{document}
+\maketitle
+
+This follows the Tutorial simulation, then applies the single-subject
+posterior-prediction idea used by \texttt{realdata\_pred}: the fitted
+posterior is kept fixed, the selected subject's observed amyloid/tau
+data are plugged in, and the subject's two random effects are estimated.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# result\_file \textless{}{-} file.path(dirname(knitr::current\_input()),}
+\CommentTok{\#                          "simulation\_single\_subject\_prediction.rds")}
+\CommentTok{\# if (!file.exists(result\_file)) \{}
+\CommentTok{\#   source(file.path(dirname(knitr::current\_input()),}
+\CommentTok{\#                    "simulation\_single\_subject\_prediction.R"))}
+\CommentTok{\# \}}
+\CommentTok{\# prediction \textless{}{-} readRDS(result\_file)}
+\CommentTok{\# subject\_id \textless{}{-} prediction$subject\_id}
+\CommentTok{\# observed \textless{}{-} prediction$observed}
+\CommentTok{\# alpha\_post \textless{}{-} prediction$alpha\_post}
+\CommentTok{\# trajectory\_plot \textless{}{-} prediction$trajectory\_plot}
+\FunctionTok{library}\NormalTok{(matrixStats)}
+\FunctionTok{source}\NormalTok{(}\StringTok{"model/data\_gen\_new.R"}\NormalTok{)}
+\FunctionTok{source}\NormalTok{(}\StringTok{"model/dweibull3.R"}\NormalTok{)}
+\FunctionTok{source}\NormalTok{(}\StringTok{"model/data\_compile bivariate.R"}\NormalTok{)}
+\FunctionTok{source}\NormalTok{(}\StringTok{"model/bayesian dpm bivariate plus survival.R"}\NormalTok{)}
+\FunctionTok{source}\NormalTok{(}\StringTok{"model/mcmc\_AF\_slice bivariate.R"}\NormalTok{)}
+\FunctionTok{source}\NormalTok{(}\StringTok{"model/cumulative\_trapz.R"}\NormalTok{)}
+\FunctionTok{source}\NormalTok{(}\StringTok{"model/simu.R"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{res }\OtherTok{\textless{}{-}} \FunctionTok{simu}\NormalTok{(varying\_coef\_code\_sim, }
+\NormalTok{            varying\_coef\_code,}
+            \AttributeTok{n\_subjects =} \DecValTok{1000}\NormalTok{,}
+            \AttributeTok{sa =} \DecValTok{8}\NormalTok{,}
+            \AttributeTok{sy =} \FloatTok{0.10}\NormalTok{,}
+            \AttributeTok{outer\_iter =} \DecValTok{1}\NormalTok{,}
+            \AttributeTok{niter =} \DecValTok{2000}\NormalTok{, }\AttributeTok{nburnin =} \DecValTok{1000}\NormalTok{, }\CommentTok{\#thin = 1, }
+            \AttributeTok{nchains =} \DecValTok{1}\NormalTok{,}
+            \AttributeTok{save\_res =}\NormalTok{ F)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Defining model
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'tau_amy_link' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'N' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'subject' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'n_subjects' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] Registering 'dmyweib3' as a distribution based on its use in BUGS code. If you make changes to the nimbleFunctions for the distribution, you must call 'deregisterDistributions' before using the distribution in BUGS code for those changes to take effect.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Warning] dimensions specified are larger than model specification
+##             for variable `theta`.
+\end{verbatim}
+
+\begin{verbatim}
+## Building model
+\end{verbatim}
+
+\begin{verbatim}
+## Setting data and initial values
+\end{verbatim}
+
+\begin{verbatim}
+## Checking model sizes and dimensions
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] This model is not fully initialized. This is not an error.
+##          To see which variables are not initialized, use model$initializeInfo().
+##          For more information on model initialization, see help(modelInitialization).
+\end{verbatim}
+
+\begin{verbatim}
+## Compiling
+##   [Note] This may take a minute.
+##   [Note] Use 'showCompilerOutput = TRUE' to see C++ compilation details.
+\end{verbatim}
+
+\begin{verbatim}
+## Defining model
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'alpha_tau_pos' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'n_subjects_tau' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'tau_amy_link' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'Xsub_tau' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+## Building model
+\end{verbatim}
+
+\begin{verbatim}
+## Setting data and initial values
+\end{verbatim}
+
+\begin{verbatim}
+## Checking model sizes and dimensions
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] This model is not fully initialized. This is not an error.
+##          To see which variables are not initialized, use model$initializeInfo().
+##          For more information on model initialization, see help(modelInitialization).
+\end{verbatim}
+
+\begin{verbatim}
+## Compiling
+##   [Note] This may take a minute.
+##   [Note] Use 'showCompilerOutput = TRUE' to see C++ compilation details.
+\end{verbatim}
+
+\begin{verbatim}
+## ===== Monitors =====
+## thin = 1: gamma_amy, gamma_tau, gamma_weib, lambda_1, lambda_2, rho, shape_weib, sigma_a_amy, sigma_a_tau, sigma_pen, sigma_y_amy, sigma_y_tau, theta_amy, theta_tau
+## ===== Samplers =====
+## RW_block sampler (1000)
+##   - alpha[]  (1000 multivariate elements)
+## RW sampler (140)
+##   - gamma_amy[]  (3 elements)
+##   - gamma_tau[]  (3 elements)
+##   - gamma_weib[]  (3 elements)
+##   - rho
+##   - theta_amy[]  (10 elements)
+##   - theta_tau[]  (10 elements)
+##   - shape_weib
+##   - lambda_1[]  (9 elements)
+##   - lambda_2[]  (9 elements)
+##   - sigma_y_amy
+##   - sigma_y_tau
+##   - sigma_a_amy
+##   - sigma_a_tau
+##   - tt[]  (87 elements)
+## conjugate sampler (2)
+##   - sigma_pen[]  (2 elements)
+## thin = 1: alpha, f_pred_amy, f_pred_tau, gamma_amy, gamma_tau, gamma_weib, lambda_1, lambda_2, r_pred_amy, r_pred_tau, rho, shape_weib, sigma_a_amy, sigma_a_tau, sigma_pen, sigma_y_amy, sigma_y_tau, theta_amy, theta_tau, xg
+\end{verbatim}
+
+\begin{verbatim}
+## Compiling
+##   [Note] This may take a minute.
+##   [Note] Use 'showCompilerOutput = TRUE' to see C++ compilation details.
+\end{verbatim}
+
+\begin{verbatim}
+## running chain 1...
+\end{verbatim}
+
+\begin{verbatim}
+## |-------------|-------------|-------------|-------------|
+## |-------------------------------------------------------|
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data\_1 }\OtherTok{\textless{}{-}} \FunctionTok{generate\_d1}\NormalTok{(}\AttributeTok{n\_subjects =} \DecValTok{2}\NormalTok{,}
+                          \AttributeTok{scenario =} \DecValTok{1}\NormalTok{,}
+                          \AttributeTok{K =} \DecValTok{8}\NormalTok{, }
+                          \AttributeTok{Kd =} \DecValTok{8}\NormalTok{,}
+                          \AttributeTok{sa =} \FloatTok{2.5}\NormalTok{,}
+                          \AttributeTok{step =} \FloatTok{0.25}\NormalTok{,}
+                          \AttributeTok{sy =} \FloatTok{0.07}\NormalTok{,}
+                          \AttributeTok{start\_index =} \DecValTok{1}\NormalTok{,}
+                          \AttributeTok{end\_index =} \DecValTok{250}\NormalTok{,}
+                          \AttributeTok{target\_threshold =} \DecValTok{1}\NormalTok{, }
+                          \AttributeTok{mid\_point =} \DecValTok{1}\NormalTok{, }
+                          \AttributeTok{a\_thresh =} \DecValTok{1}\NormalTok{,}
+                          \AttributeTok{C =} \ConstantTok{NULL}\NormalTok{)}
+    
+\NormalTok{simudata }\OtherTok{\textless{}{-}} \FunctionTok{generate\_vc}\NormalTok{(varying\_coef\_code\_sim, data\_1, }
+                            \AttributeTok{scenario =} \DecValTok{1}\NormalTok{, }\CommentTok{\#iter = i,}
+                            \AttributeTok{save\_data =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{root =} \ConstantTok{NULL}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Defining model
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'tau_amy_link' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'N' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'subject' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'n_subjects' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Warning] dimensions specified are larger than model specification
+##             for variable `theta`.
+\end{verbatim}
+
+\begin{verbatim}
+## Building model
+\end{verbatim}
+
+\begin{verbatim}
+## Setting data and initial values
+\end{verbatim}
+
+\begin{verbatim}
+## Checking model sizes and dimensions
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] This model is not fully initialized. This is not an error.
+##          To see which variables are not initialized, use model$initializeInfo().
+##          For more information on model initialization, see help(modelInitialization).
+\end{verbatim}
+
+\begin{verbatim}
+## Compiling
+##   [Note] This may take a minute.
+##   [Note] Use 'showCompilerOutput = TRUE' to see C++ compilation details.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{subject\_id }\OtherTok{\textless{}{-}}\NormalTok{ data\_1}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{subject\_tau}
+\NormalTok{subject\_tau }\OtherTok{\textless{}{-}}\NormalTok{ simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{subject\_tau}
+\NormalTok{cModelsim }\OtherTok{\textless{}{-}}\NormalTok{ simudata}\SpecialCharTok{$}\NormalTok{cModelsim}
+    
+\NormalTok{data\_surv }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(subject\_id, cModelsim}\SpecialCharTok{$}\NormalTok{y\_sparse\_tau, cModelsim}\SpecialCharTok{$}\NormalTok{tt) }\SpecialCharTok{|\textgreater{}} 
+      \FunctionTok{filter}\NormalTok{(cModelsim.y\_sparse\_tau }\SpecialCharTok{\textgreater{}=} \DecValTok{1}\NormalTok{, subject\_id }\SpecialCharTok{\%in\%}\NormalTok{ subject\_tau) }\SpecialCharTok{|\textgreater{}} \CommentTok{\#filter(cModelsim.t \textgreater{} 5) |\textgreater{} }
+      \FunctionTok{group\_by}\NormalTok{(subject\_id) }\SpecialCharTok{|\textgreater{}}
+      \FunctionTok{slice\_min}\NormalTok{(cModelsim.tt, }\AttributeTok{n=}\DecValTok{1}\NormalTok{, }\AttributeTok{with\_ties =}\NormalTok{ F) }\SpecialCharTok{|\textgreater{}}
+      \FunctionTok{ungroup}\NormalTok{()}
+
+\NormalTok{data\_surv}\SpecialCharTok{$}\NormalTok{censored }\OtherTok{\textless{}{-}} \FunctionTok{rbinom}\NormalTok{(}\FunctionTok{nrow}\NormalTok{(data\_surv),}\DecValTok{1}\NormalTok{, }\AttributeTok{prob=}\FloatTok{0.3}\NormalTok{)}
+\NormalTok{data\_surv}\SpecialCharTok{$}\NormalTok{thresh }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{data\_surv}\SpecialCharTok{$}\NormalTok{thresh[}\FunctionTok{which}\NormalTok{(data\_surv}\SpecialCharTok{$}\NormalTok{cModelsim.y\_sparse\_tau }\SpecialCharTok{\textgreater{}=} \DecValTok{1}\NormalTok{)] }\OtherTok{\textless{}{-}} \DecValTok{1}
+\NormalTok{data\_surv}\SpecialCharTok{$}\NormalTok{t }\OtherTok{\textless{}{-}}\NormalTok{ data\_surv}\SpecialCharTok{$}\NormalTok{cModelsim.tt}
+\NormalTok{data\_surv}\SpecialCharTok{$}\NormalTok{c }\OtherTok{\textless{}{-}}\NormalTok{ data\_surv}\SpecialCharTok{$}\NormalTok{cModelsim.tt}
+\NormalTok{data\_surv}\SpecialCharTok{$}\NormalTok{t[data\_surv}\SpecialCharTok{$}\NormalTok{censored }\SpecialCharTok{==} \DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \ConstantTok{NA}
+\NormalTok{data\_surv}\SpecialCharTok{$}\NormalTok{c[data\_surv}\SpecialCharTok{$}\NormalTok{censored }\SpecialCharTok{==} \DecValTok{0}\NormalTok{] }\OtherTok{\textless{}{-}} \ConstantTok{Inf}
+    
+    
+\NormalTok{    n\_subjects }\OtherTok{\textless{}{-}}\NormalTok{ data\_1}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_subjects}
+\NormalTok{    alpha\_tau\_pos }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\ConstantTok{Inf}\NormalTok{, n\_subjects)}
+\NormalTok{    alpha\_tau\_pos[}\FunctionTok{which}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\NormalTok{n\_subjects }\SpecialCharTok{\%in\%}\NormalTok{ data\_surv}\SpecialCharTok{$}\NormalTok{subject\_id)] }\OtherTok{\textless{}{-}}\NormalTok{ data\_surv}\SpecialCharTok{$}\NormalTok{cModelsim.tt}
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{alpha\_tau\_pos }\OtherTok{=}\NormalTok{ alpha\_tau\_pos[simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_amy\_link]}
+    
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_subjects\_surv }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(data\_surv}\SpecialCharTok{$}\NormalTok{subject\_id)}
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{Xsub\_surv }\OtherTok{\textless{}{-}}\NormalTok{ simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{Xsub\_amy[data\_surv}\SpecialCharTok{$}\NormalTok{subject\_id,]}
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_surv\_link }\OtherTok{\textless{}{-}}\NormalTok{ data\_surv}\SpecialCharTok{$}\NormalTok{subject\_id}
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{c }\OtherTok{\textless{}{-}}\NormalTok{ data\_surv}\SpecialCharTok{$}\NormalTok{c}
+    
+\NormalTok{    tinit }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\ConstantTok{NA}\NormalTok{, }\FunctionTok{length}\NormalTok{(data\_surv}\SpecialCharTok{$}\NormalTok{subject\_id))}
+\NormalTok{    tinit[data\_surv}\SpecialCharTok{$}\NormalTok{censored }\SpecialCharTok{==} \DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}}\NormalTok{ data\_surv}\SpecialCharTok{$}\NormalTok{cModelsim.tt[data\_surv}\SpecialCharTok{$}\NormalTok{censored }\SpecialCharTok{==} \DecValTok{1}\NormalTok{] }\SpecialCharTok{+} \DecValTok{1}
+    
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{tt }\OtherTok{\textless{}{-}}\NormalTok{ tinit}
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{shape\_weib }\OtherTok{\textless{}{-}} \DecValTok{1}
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{gamma\_weib }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{log}\NormalTok{(}\FunctionTok{median}\NormalTok{(data\_surv}\SpecialCharTok{$}\NormalTok{cModelsim.tt, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)), }\FunctionTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+    
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{gamma\_amy }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\DecValTok{50}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{)}
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{gamma\_tau }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\DecValTok{55}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{)}
+    
+    \CommentTok{\# Need to truncate to respect the constraints of the integral}
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{alpha[}\DecValTok{2}\NormalTok{, data\_surv}\SpecialCharTok{$}\NormalTok{subject\_id] }\OtherTok{\textless{}{-}} \FunctionTok{pmin}\NormalTok{(}
+\NormalTok{      data\_surv}\SpecialCharTok{$}\NormalTok{cModelsim.tt }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{, }
+\NormalTok{      simudata}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{alpha[}\DecValTok{2}\NormalTok{, data\_surv}\SpecialCharTok{$}\NormalTok{subject\_id]}
+\NormalTok{    )}
+
+    \CommentTok{\# Initialize tau to be same dimension as amyloid }
+    
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{censored }\OtherTok{\textless{}{-}}\NormalTok{ data\_surv}\SpecialCharTok{$}\NormalTok{censored}
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{tt }\OtherTok{\textless{}{-}}\NormalTok{ data\_surv}\SpecialCharTok{$}\NormalTok{t}
+
+\NormalTok{    max\_t\_tau }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\ConstantTok{NA}\NormalTok{, simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_subjects\_amy)}
+\NormalTok{    min\_t\_tau }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\ConstantTok{NA}\NormalTok{, simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_subjects\_amy)}
+    
+\NormalTok{    max\_t\_tau[simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_amy\_link] }\OtherTok{\textless{}{-}}\NormalTok{ simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{max\_t\_tau}
+\NormalTok{    min\_t\_tau[simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_amy\_link] }\OtherTok{\textless{}{-}}\NormalTok{ simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{min\_t\_tau}
+    
+\NormalTok{    max\_t\_tau[}\SpecialCharTok{{-}}\NormalTok{simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_amy\_link] }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{    min\_t\_tau[}\SpecialCharTok{{-}}\NormalTok{simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_amy\_link] }\OtherTok{\textless{}{-}} \DecValTok{120}
+    
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{max\_t\_tau }\OtherTok{\textless{}{-}}\NormalTok{ max\_t\_tau}
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{min\_t\_tau }\OtherTok{\textless{}{-}}\NormalTok{ min\_t\_tau}
+    
+\NormalTok{    simudata}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{constraint\_alpha\_tau }\OtherTok{\textless{}{-}}\NormalTok{ simudata}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{constraint\_alpha\_amy}
+\CommentTok{\# Format data}
+\CommentTok{\#simudata\_pred \textless{}{-} list(constants = constants, data = data, inits = inits)}
+\NormalTok{simudata\_pred }\OtherTok{\textless{}{-}}\NormalTok{ simudata}
+\NormalTok{samples }\OtherTok{\textless{}{-}}\NormalTok{ res}\SpecialCharTok{$}\NormalTok{res}\SpecialCharTok{$}\NormalTok{samples}
+\NormalTok{f\_pred\_amy }\OtherTok{\textless{}{-}}\NormalTok{ (samples[,}\FunctionTok{grep}\NormalTok{(}\StringTok{"f\_pred\_amy"}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(samples))]) }
+\NormalTok{f\_pred\_tau }\OtherTok{\textless{}{-}}\NormalTok{ (samples[,}\FunctionTok{grep}\NormalTok{(}\StringTok{"f\_pred\_tau"}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(samples))]) }
+
+\NormalTok{gamma\_amy }\OtherTok{\textless{}{-}}\NormalTok{ samples[, }\FunctionTok{grepl}\NormalTok{(}\StringTok{"\^{}gamma\_amy(}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{[|$|\_)"}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(samples)), drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+\NormalTok{gamma\_tau }\OtherTok{\textless{}{-}}\NormalTok{ (samples[, }\FunctionTok{grepl}\NormalTok{(}\StringTok{"\^{}gamma\_tau(}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{[|$|\_)"}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(samples)), }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{]) }
+
+\NormalTok{sigma\_a\_amy }\OtherTok{\textless{}{-}}\NormalTok{ (samples[, }\FunctionTok{grepl}\NormalTok{(}\StringTok{"sigma\_a\_amy"}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(samples)), }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{])}
+\NormalTok{sigma\_a\_tau }\OtherTok{\textless{}{-}}\NormalTok{ (samples[, }\FunctionTok{grepl}\NormalTok{(}\StringTok{"sigma\_a\_tau"}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(samples)), }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{])}
+
+\NormalTok{sigma\_y\_amy }\OtherTok{\textless{}{-}}\NormalTok{ (samples[, }\FunctionTok{grepl}\NormalTok{(}\StringTok{"sigma\_y\_amy"}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(samples)), }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{])}
+\NormalTok{sigma\_y\_tau }\OtherTok{\textless{}{-}}\NormalTok{ (samples[, }\FunctionTok{grepl}\NormalTok{(}\StringTok{"sigma\_y\_tau"}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(samples)), }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{])}
+
+\NormalTok{rho }\OtherTok{\textless{}{-}}\NormalTok{ (samples[, }\FunctionTok{grepl}\NormalTok{(}\StringTok{"rho"}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(samples)), }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{])}
+
+\NormalTok{simudata\_cv }\OtherTok{\textless{}{-}}\NormalTok{ simudata}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{data }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+\NormalTok{  simudata\_cv}\SpecialCharTok{$}\NormalTok{data,}
+  \FunctionTok{list}\NormalTok{(}
+    \AttributeTok{f\_pred\_amy =}\NormalTok{ (f\_pred\_amy),}
+    \AttributeTok{f\_pred\_tau =}\NormalTok{ (f\_pred\_tau),}
+    
+    \AttributeTok{gamma\_amy =}\NormalTok{ (gamma\_amy),}
+    \AttributeTok{gamma\_tau =}\NormalTok{ (gamma\_tau),}
+    
+    \AttributeTok{sigma\_a\_amy =} \FunctionTok{c}\NormalTok{(sigma\_a\_amy),}
+    \AttributeTok{sigma\_a\_tau =} \FunctionTok{c}\NormalTok{(sigma\_a\_tau),}
+    
+    \AttributeTok{sigma\_y\_amy =} \FunctionTok{c}\NormalTok{(sigma\_y\_amy),}
+    \AttributeTok{sigma\_y\_tau =} \FunctionTok{c}\NormalTok{(sigma\_y\_tau),}
+    \AttributeTok{rho =} \FunctionTok{c}\NormalTok{(rho)}
+\NormalTok{  )}
+\NormalTok{)}
+
+\CommentTok{\# Constants}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_mcmc }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(rho)}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_post }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_subjects\_amy}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{N\_amy  }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{N\_amy}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{N\_tau  }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{N\_tau}
+
+\CommentTok{\# Data}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{y\_pred\_amy }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{y\_pred\_amy }
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{y\_pred\_tau }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{y\_pred\_tau}
+
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{t\_amy }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{t\_amy}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{t\_tau }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{t\_tau}
+
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{Xsub\_amy  }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{Xsub\_amy }
+
+\CommentTok{\# Constraint}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{subject\_amy  }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{subject\_amy }
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{subject\_tau  }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{subject\_tau}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_amy\_link }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_amy\_link}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{constraint\_alpha\_amy }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\DecValTok{1}\NormalTok{, simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_subjects\_amy)}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{data}\SpecialCharTok{$}\NormalTok{constraint\_alpha\_tau }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\DecValTok{1}\NormalTok{, simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_subjects\_amy)}
+
+\CommentTok{\# Subject{-}specific boundaries for the dconstraint loops}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{max\_t\_amy }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{max\_t\_amy}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{min\_t\_amy }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{min\_t\_amy}
+
+\NormalTok{max\_t\_tau }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\ConstantTok{NA}\NormalTok{, simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_subjects\_amy)}
+\NormalTok{min\_t\_tau }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\ConstantTok{NA}\NormalTok{, simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_subjects\_amy)}
+
+\NormalTok{tau\_subjects }\OtherTok{\textless{}{-}} \FunctionTok{sort}\NormalTok{(}\FunctionTok{unique}\NormalTok{(simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_amy\_link))}
+\NormalTok{tau\_positions }\OtherTok{\textless{}{-}} \FunctionTok{match}\NormalTok{(}
+\NormalTok{  tau\_subjects,}
+  \FunctionTok{sort}\NormalTok{(}\FunctionTok{unique}\NormalTok{(simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{subject\_tau))}
+\NormalTok{)}
+\NormalTok{max\_t\_tau[tau\_subjects] }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{max\_t\_tau[tau\_positions]}
+\NormalTok{min\_t\_tau[tau\_subjects] }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{min\_t\_tau[tau\_positions]}
+
+\NormalTok{max\_t\_tau[}\SpecialCharTok{{-}}\NormalTok{simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_amy\_link] }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{min\_t\_tau[}\SpecialCharTok{{-}}\NormalTok{simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_amy\_link] }\OtherTok{\textless{}{-}} \DecValTok{140}
+
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{max\_t\_tau }\OtherTok{\textless{}{-}}\NormalTok{ max\_t\_tau}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{min\_t\_tau }\OtherTok{\textless{}{-}}\NormalTok{ min\_t\_tau}
+
+\CommentTok{\# inits}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{gamma\_amy }\OtherTok{\textless{}{-}} \ConstantTok{NULL}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{gamma\_tau }\OtherTok{\textless{}{-}} \ConstantTok{NULL}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{alpha }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{, }\AttributeTok{nrow =} \DecValTok{2}\NormalTok{, }\AttributeTok{ncol =}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_subjects\_amy)}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{alpha[}\DecValTok{1}\NormalTok{, ] }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{alpha[}\DecValTok{1}\NormalTok{,]}
+\NormalTok{simudata\_cv}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{alpha[}\DecValTok{2}\NormalTok{, ] }\OtherTok{\textless{}{-}}\NormalTok{ simudata\_pred}\SpecialCharTok{$}\NormalTok{inits}\SpecialCharTok{$}\NormalTok{alpha[}\DecValTok{2}\NormalTok{,]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{source}\NormalTok{(}\StringTok{\textquotesingle{}posterior code/real data mcmc\_posterior.R\textquotesingle{}}\NormalTok{)}
+\FunctionTok{source}\NormalTok{(}\StringTok{\textquotesingle{}posterior code/posterior predictive distribution.R\textquotesingle{}}\NormalTok{)}
+\NormalTok{posterior\_res\_forward }\OtherTok{\textless{}{-}} \FunctionTok{mcchains}\NormalTok{(posterior\_predictions\_code,}
+\NormalTok{                                  simudata\_cv,}
+                                  \AttributeTok{monitors =} \FunctionTok{c}\NormalTok{(}\StringTok{"alpha"}\NormalTok{, }\StringTok{"gamma\_amy\_post"}\NormalTok{, }\StringTok{"gamma\_tau\_post"}\NormalTok{,}
+                                               \StringTok{"f\_pred\_amy\_post"}\NormalTok{, }\StringTok{"f\_pred\_tau\_post"}\NormalTok{,}
+                                               \StringTok{"rho\_post"}\NormalTok{),}
+                                  \AttributeTok{niter =} \DecValTok{2000}\NormalTok{,}
+                                  \AttributeTok{nburnin =} \DecValTok{1000}\NormalTok{,}
+                                  \AttributeTok{thin =} \DecValTok{1}\NormalTok{,}
+                                  \AttributeTok{nchains =} \DecValTok{1}\NormalTok{,}
+                                  \AttributeTok{fullres =} \ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Defining model
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'B_d' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'K' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'alpha_tau_pos' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'n_subjects_tau' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'tau_surv_link' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'n_subjects_amy' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'tau_thresh' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'Xsub_surv' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'tau_amy_link' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'Xsub_tau' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'c' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'n_subjects_surv' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'amy_thresh' is provided in 'constants' but not used in the model code and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+## Building model
+\end{verbatim}
+
+\begin{verbatim}
+## Setting data and initial values
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'censored' is provided in 'data' but is not a variable in the model and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'tt' is provided in 'data' but is not a variable in the model and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'theta_amy' has initial values but is not a variable in the model and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'theta_tau' has initial values but is not a variable in the model and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'tt' has initial values but is not a variable in the model and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'shape_weib' has initial values but is not a variable in the model and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] 'gamma_weib' has initial values but is not a variable in the model and is being ignored.
+\end{verbatim}
+
+\begin{verbatim}
+## Checking model sizes and dimensions
+\end{verbatim}
+
+\begin{verbatim}
+##   [Note] This model is not fully initialized. This is not an error.
+##          To see which variables are not initialized, use model$initializeInfo().
+##          For more information on model initialization, see help(modelInitialization).
+\end{verbatim}
+
+\begin{verbatim}
+## Compiling
+##   [Note] This may take a minute.
+##   [Note] Use 'showCompilerOutput = TRUE' to see C++ compilation details.
+\end{verbatim}
+
+\begin{verbatim}
+## ===== Monitors =====
+## thin = 1: u
+## ===== Samplers =====
+## RW_block sampler (2)
+##   - alpha[1:2, 1]
+##   - alpha[1:2, 2] 
+## RW sampler (1)
+##   - u
+## thin = 1: alpha, f_pred_amy_post, f_pred_tau_post, gamma_amy_post, gamma_tau_post, rho_post, u
+\end{verbatim}
+
+\begin{verbatim}
+## Compiling
+##   [Note] This may take a minute.
+##   [Note] Use 'showCompilerOutput = TRUE' to see C++ compilation details.
+\end{verbatim}
+
+\begin{verbatim}
+## running chain 1...
+\end{verbatim}
+
+\begin{verbatim}
+## |-------------|-------------|-------------|-------------|
+## |-------------------------------------------------------|
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{post\_samples }\OtherTok{\textless{}{-}}\NormalTok{ posterior\_res\_forward}\SpecialCharTok{$}\NormalTok{samples}
+\NormalTok{alpha\_draws }\OtherTok{\textless{}{-}}\NormalTok{ post\_samples[, }\FunctionTok{grep}\NormalTok{(}\StringTok{"\^{}alpha}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{["}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(post\_samples)), drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+\NormalTok{alpha\_amy }\OtherTok{\textless{}{-}}\NormalTok{ alpha\_draws[, }\FunctionTok{seq}\NormalTok{(}\DecValTok{1}\NormalTok{, }\FunctionTok{ncol}\NormalTok{(alpha\_draws), }\AttributeTok{by =} \DecValTok{2}\NormalTok{), drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+\NormalTok{alpha\_tau\_all }\OtherTok{\textless{}{-}}\NormalTok{ alpha\_draws[, }\FunctionTok{seq}\NormalTok{(}\DecValTok{2}\NormalTok{, }\FunctionTok{ncol}\NormalTok{(alpha\_draws), }\AttributeTok{by =} \DecValTok{2}\NormalTok{), drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+\NormalTok{tau\_subjects }\OtherTok{\textless{}{-}} \FunctionTok{sort}\NormalTok{(}\FunctionTok{unique}\NormalTok{(simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_amy\_link))}
+\NormalTok{alpha\_tau }\OtherTok{\textless{}{-}}\NormalTok{ alpha\_tau\_all[, tau\_subjects, drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+
+\NormalTok{f\_amy\_post }\OtherTok{\textless{}{-}}\NormalTok{ post\_samples[, }\FunctionTok{grep}\NormalTok{(}\StringTok{"\^{}f\_pred\_amy\_post}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{["}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(post\_samples)),}
+\NormalTok{                           drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+\NormalTok{f\_tau\_post }\OtherTok{\textless{}{-}}\NormalTok{ post\_samples[, }\FunctionTok{grep}\NormalTok{(}\StringTok{"\^{}f\_pred\_tau\_post}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{["}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(post\_samples)),}
+\NormalTok{                           drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+
+\NormalTok{offset\_grid }\OtherTok{\textless{}{-}}\NormalTok{ (}\FunctionTok{seq\_len}\NormalTok{(}\FunctionTok{ncol}\NormalTok{(f\_amy\_post)) }\SpecialCharTok{{-}}
+\NormalTok{                  simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{middle\_index) }\SpecialCharTok{*}
+\NormalTok{  simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{step}
+
+\NormalTok{crossing\_offset }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(trajectory, threshold, offsets) \{}
+\NormalTok{  hit }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(trajectory }\SpecialCharTok{\textgreater{}=}\NormalTok{ threshold)[}\DecValTok{1}\NormalTok{]}
+  \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{is.na}\NormalTok{(hit)) }\FunctionTok{return}\NormalTok{(}\ConstantTok{NA\_real\_}\NormalTok{)}
+  \ControlFlowTok{if}\NormalTok{ (hit }\SpecialCharTok{==} \DecValTok{1}\DataTypeTok{L}\NormalTok{) }\FunctionTok{return}\NormalTok{(offsets[}\DecValTok{1}\NormalTok{])}
+\NormalTok{  stats}\SpecialCharTok{::}\FunctionTok{approx}\NormalTok{(trajectory[}\FunctionTok{c}\NormalTok{(hit }\SpecialCharTok{{-}} \DecValTok{1}\DataTypeTok{L}\NormalTok{, hit)],}
+\NormalTok{                offsets[}\FunctionTok{c}\NormalTok{(hit }\SpecialCharTok{{-}} \DecValTok{1}\DataTypeTok{L}\NormalTok{, hit)],}
+                \AttributeTok{xout =}\NormalTok{ threshold, }\AttributeTok{ties =} \StringTok{"ordered"}\NormalTok{)}\SpecialCharTok{$}\NormalTok{y}
+\NormalTok{\}}
+
+\NormalTok{threshold\_age }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(trajectory\_matrix, alpha\_vector, threshold, offsets) \{}
+  \FunctionTok{vapply}\NormalTok{(}\FunctionTok{seq\_len}\NormalTok{(}\FunctionTok{nrow}\NormalTok{(trajectory\_matrix)), }\ControlFlowTok{function}\NormalTok{(i) \{}
+\NormalTok{    alpha\_vector[i] }\SpecialCharTok{+}
+      \FunctionTok{crossing\_offset}\NormalTok{(trajectory\_matrix[i, ], threshold, offsets)}
+\NormalTok{  \}, }\FunctionTok{numeric}\NormalTok{(}\DecValTok{1}\NormalTok{))}
+\NormalTok{\}}
+
+\NormalTok{threshold\_prediction }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(}
+  \FunctionTok{data.frame}\NormalTok{(}
+    \AttributeTok{subject =} \FunctionTok{seq\_len}\NormalTok{(}\FunctionTok{ncol}\NormalTok{(alpha\_amy)),}
+    \AttributeTok{biomarker =} \StringTok{"Amyloid SUVR"}\NormalTok{,}
+    \AttributeTok{posterior\_median =} \FunctionTok{vapply}\NormalTok{(}\FunctionTok{seq\_len}\NormalTok{(}\FunctionTok{ncol}\NormalTok{(alpha\_amy)), }\ControlFlowTok{function}\NormalTok{(j) \{}
+      \FunctionTok{median}\NormalTok{(}\FunctionTok{threshold\_age}\NormalTok{(f\_amy\_post, alpha\_amy[, j],}
+\NormalTok{                           simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{amy\_thresh, offset\_grid),}
+             \AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{    \}, }\FunctionTok{numeric}\NormalTok{(}\DecValTok{1}\NormalTok{))}
+\NormalTok{  ),}
+  \FunctionTok{data.frame}\NormalTok{(}
+    \AttributeTok{subject =}\NormalTok{ tau\_subjects,}
+    \AttributeTok{biomarker =} \StringTok{"Tau PET"}\NormalTok{,}
+    \AttributeTok{posterior\_median =} \FunctionTok{vapply}\NormalTok{(}\FunctionTok{seq\_len}\NormalTok{(}\FunctionTok{ncol}\NormalTok{(alpha\_tau)), }\ControlFlowTok{function}\NormalTok{(j) \{}
+      \FunctionTok{median}\NormalTok{(}\FunctionTok{threshold\_age}\NormalTok{(f\_tau\_post, alpha\_tau[, j],}
+\NormalTok{                           simudata\_cv}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{tau\_thresh, offset\_grid),}
+             \AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{    \}, }\FunctionTok{numeric}\NormalTok{(}\DecValTok{1}\NormalTok{))}
+\NormalTok{  )}
+\NormalTok{)}
+
+\NormalTok{threshold\_prediction}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   subject    biomarker posterior_median
+## 1       1 Amyloid SUVR         45.01386
+## 2       2 Amyloid SUVR         47.89783
+## 3       1      Tau PET         58.90162
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{post\_alpha\_amyf }\OtherTok{\textless{}{-}}\NormalTok{ posterior\_res\_forward}\SpecialCharTok{$}\NormalTok{samples[,}\FunctionTok{grep}\NormalTok{(}\StringTok{"alpha"}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(posterior\_res\_forward}\SpecialCharTok{$}\NormalTok{samples))][, }\FunctionTok{seq}\NormalTok{(}\DecValTok{1}\NormalTok{, simudata\_pred}\SpecialCharTok{$}\NormalTok{constants}\SpecialCharTok{$}\NormalTok{n\_subjects\_amy}\SpecialCharTok{*}\DecValTok{2}\NormalTok{, }\AttributeTok{by =} \DecValTok{2}\NormalTok{)]}
+
+\FunctionTok{colMedians}\NormalTok{(post\_alpha\_amyf)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## alpha[1, 1] alpha[1, 2] 
+##    45.01386    47.89783
+\end{verbatim}
+
+\end{document}
