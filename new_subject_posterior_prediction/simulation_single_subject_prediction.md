@@ -1,0 +1,52 @@
+---
+title: "Single simulation subject posterior prediction"
+author: "B-TAJ"
+output: html_document
+---
+
+This follows the Tutorial simulation, then applies the single-subject
+posterior-prediction idea used by `realdata_pred`: the fitted posterior is
+kept fixed, the selected subject's observed amyloid/tau data are plugged in,
+and the subject's two random effects are estimated.
+
+
+``` r
+result_file <- file.path(dirname(knitr::current_input()),
+                         "simulation_single_subject_prediction.rds")
+if (!file.exists(result_file)) {
+  source(file.path(dirname(knitr::current_input()),
+                   "simulation_single_subject_prediction.R"))
+}
+prediction <- readRDS(result_file)
+subject_id <- prediction$subject_id
+observed <- prediction$observed
+alpha_post <- prediction$alpha_post
+trajectory_plot <- prediction$trajectory_plot
+```
+
+The selected subject is 1. The figure follows the Tutorial/PDF
+style: observed sample points, the simulation truth (dashed), and the
+conditional posterior median with a 95% band.
+
+
+``` r
+trajectory_plot
+```
+
+![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-1.png)
+
+
+``` r
+data.frame(
+  random_effect = c("alpha_amy", "alpha_tau"),
+  truth = prediction$alpha_truth,
+  posterior_median = colMedians(alpha_post),
+  lower_95 = colQuantiles(alpha_post, probs = 0.025),
+  upper_95 = colQuantiles(alpha_post, probs = 0.975)
+)
+```
+
+```
+## Error in `colMedians()`:
+## ! could not find function "colMedians"
+```
