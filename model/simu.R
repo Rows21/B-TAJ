@@ -63,9 +63,9 @@ simu <- function(varying_coef_code_sim,
                           a_thresh = 1,
                           C = NULL)
     
-    simudata <- generate_vc(varying_coef_code_sim, data_1, 
-                            scenario = scenario, #iter = i,
-                            save_data = save_data, root = root)
+    simudata <- generate_vc(varying_coef_code_sim, data_1,
+                            scenario = scenario,
+                            save_data = FALSE, root = NULL)
     
     # construct survival 
     subject_id <- data_1$constants$subject_tau

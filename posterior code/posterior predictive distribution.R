@@ -54,8 +54,8 @@ posterior_predictions_code <- nimbleCode({
   gamma_amy_post[1:P] <- random_row(gamma_amy[1:n_mcmc, 1:P]) + u - u 
   gamma_tau_post[1:P] <- random_row(gamma_tau[1:n_mcmc, 1:P]) + u - u
   
-  f_pred_amy_post[1:201] <- random_row(f_pred_amy[1:n_mcmc, 1:201]) + u - u
-  f_pred_tau_post[1:201] <- random_row(f_pred_tau[1:n_mcmc, 1:201]) + u - u
+  f_pred_amy_post[1:n_pred] <- random_row(f_pred_amy[1:n_mcmc, 1:n_pred]) + u - u
+  f_pred_tau_post[1:n_pred] <- random_row(f_pred_tau[1:n_mcmc, 1:n_pred]) + u - u
     
   sigma_a_amy_post <- random_scalar(sigma_a_amy[1:n_mcmc]) + u - u
   sigma_a_tau_post <- random_scalar(sigma_a_tau[1:n_mcmc]) + u - u
@@ -167,7 +167,6 @@ always_accept_sampler <- nimbleFunction(
     
     
     
-
 
 
 

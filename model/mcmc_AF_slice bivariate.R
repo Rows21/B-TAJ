@@ -52,7 +52,7 @@ mcchains <- function(
   #conf$addSampler(target = c("gamma_weib[1:3]", "shape_weib"), type = 'AF_slice')
   conf$addSampler(target = c("gamma_weib[1:3]"), type = 'AF_slice')
 
-for(n in 1:1000) {
+for(n in 1:simudata$constants$n_subjects_amy) {
   conf$addSampler(target = paste0('alpha[1:2, ', n, ']'),
                   type = 'AF_slice')
 }
@@ -78,4 +78,3 @@ for(n in 1:1000) {
     # return()
   }
 }
-
