@@ -43,7 +43,7 @@ mcchains <- function(
   conf$removeSampler("sigma_a_tau")
   conf$removeSampler("sigma_a_amy")
   
-  conf$addSampler(target = c("gamma_amy[1:3]", "gamma_tau[1:3]", 'rho'), type = 'AF_slice')
+  conf$addSampler(target = c("gamma_amy[1:5]", "gamma_tau[1:5]", 'rho'), type = 'AF_slice')
   conf$addSampler(target = c("sigma_a_amy", "sigma_a_tau"), type = 'AF_slice')
   #conf$addSampler(target = c("gamma_amy[1:3]"), type = 'AF_slice')
   #conf$addSampler(target = c("gamma_tau[1:3]"), type = 'AF_slice')

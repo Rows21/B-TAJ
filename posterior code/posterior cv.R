@@ -3,12 +3,13 @@ library(nimble)
 library(matrixStats)
 
 setwd('M:/Bayesian DPM Model/Bayesian DPM Model/')
-source("Real Data Analysis/real data bivariate plus survival data cv.R")
+setwd("E:/Github/B-TAJ/posterior code/")
+source("real data bivariate plus survival data cv.R")
 source("Real Data Analysis/Data_preprocess_amy.R")
 source("Real Data Analysis/Data_preprocess_tau.R")
 source("Real Data Analysis/real data bivariate plus survival data.R")
-source('Real Data Analysis/real data mcmc_posterior.R')
-source('Real Data Analysis/posterior predictive distribution.R')
+source('real data mcmc_posterior.R')
+source('posterior predictive distribution.R')
 set.seed(123)
 
 
@@ -78,7 +79,7 @@ for(cv in 1:5){
   train_id <- sort(as.numeric(unlist(fold_list[-cv])))
   
   simudata_cv <- realdata_cv(X_amy, X_tau, train_id, simudata$constants$tau_amy_link, dta_surv_df)
-  save(simudata_cv, file = paste0("M:/Bayesian DPM Model/Bayesian DPM Model/Real Data Analysis/real_data_cv",cv,".Rdata"))
+  save(simudata_cv, file = paste0("E:/Github/data/real_data_cv",cv,".Rdata"))
   # Constraints
   max_t_tau <- rep(NA, simudata_cv$constants$n_subjects_amy)
   min_t_tau <- rep(NA, simudata_cv$constants$n_subjects_amy)
@@ -114,7 +115,7 @@ for(cv in 1:5){
                   thin = 1,
                   nchains = 1,
                   fullres = TRUE) # fullres fixed
-  save(res, file = paste0("M:/Bayesian DPM Model/Bayesian DPM Model/Real Data Analysis/model_out",cv,".Rdata"))
+  save(res, file = paste0("E:/Github/data/model_out",cv,".Rdata"))
 }
 
 

@@ -1,0 +1,271 @@
+---
+title: "Results"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+date: "2026-10-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(matrixStats)
+library(patchwork)
+library(nimble)
+```
+
+```{r preprocess}
+source("E:/Github/data/Data_preprocess_amy.R")
+source("E:/Github/data/Data_preprocess_tau.R")
+source("E:/Github/data/real data bivariate plus survival data.R")
+load(file = "E:/Github/data/model_out.Rdata")
+samples <- res$samples
+```
+
+```{r fig1}
+
+# Observed data
+dta_amy$CL <- dta_amy$SUVR * 169.27 - 102.35
+g1_amy <- ggplot(dta_amy, aes(x = age_at_scan, y = CL, group = RID, color = factor(RID))) +
+  geom_point(alpha = 0.4) +
+  geom_line(alpha = 0.4) +
+  geom_hline(yintercept = simudata$constants$amy_thresh * 169.27 - 102.35, color = "black", linetype = "dashed") +
+  xlab("Age (years)") +
+  ylab("CL") +
+  ggtitle("Amyloid CL") +
+  theme_bw() +
+  theme(legend.position = "none") +  annotate(
+    "text",
+    x = max(dta_amy$age_at_scan, na.rm = TRUE) - 2,
+    y = simudata$constants$amy_thresh * 169.27 - 102.35,
+    label = "CL = 24",
+    vjust = -0.6,
+    size = 3
+  )
+
+g1_tau <- ggplot(dta_tau, aes(x = age_at_scan, y = SUVR, group = RID, color = factor(RID))) +
+  geom_point(alpha = 0.4) +
+  geom_line(alpha = 0.4) +
+  geom_hline(yintercept = simudata$constants$tau_thresh, color = "black", linetype = "dashed") +
+  xlab("Age (years)") +
+  ylab("SUVR") +
+  ggtitle("Tau SUVR") +
+  theme_bw() +
+  theme(legend.position = "none") + annotate(
+    "text",
+    x = max(dta_amy$age_at_scan, na.rm = TRUE) - 5,
+    y = simudata$constants$tau_thresh,
+    label = "SUVR = 1.41",
+    vjust = -0.6,
+    size = 3
+  )
+
+alpha_amy <- colMedians(samples[,grep("alpha", colnames(samples))])[seq(1, 3800, by = 2)]
+alpha_amy_upper <- colQuantiles(samples[,grep("alpha", colnames(samples))], probs = 0.975)[seq(1, 3800, by = 2)]
+alpha_amy_lower <- colQuantiles(samples[,grep("alpha", colnames(samples))], probs = 0.025)[seq(1, 3800, by = 2)]
+alpha_amy_sd <- apply(samples[,grep("alpha", colnames(samples))][, seq(1, 3800, by = 2)], 2, sd)
+#xg <- colMeans(samples[,grep("xg", colnames(samples))])
+alpha_amy <- unname(alpha_amy)
+
+alpha_tau <- colMedians(samples[,grep("alpha", colnames(samples))])[seq(2, 3800, by = 2)][simudata$constants$tau_amy_link]
+alpha_tau_upper <- colQuantiles(samples[,grep("alpha", colnames(samples))], probs = 0.975)[seq(2, 3800, by = 2)][simudata$constants$tau_amy_link]
+alpha_tau_lower <- colQuantiles(samples[,grep("alpha", colnames(samples))], probs = 0.025)[seq(2, 3800, by = 2)][simudata$constants$tau_amy_link]
+alpha_tau_sd <- apply(samples[,grep("alpha", colnames(samples))][, seq(2, 3800, by = 2)], 2, sd)[simudata$constants$tau_amy_link]
+#xg <- colMeans(samples[,grep("xg_tau", colnames(samples))])
+alpha_tau <- unname(alpha_tau)
+
+dta_amy$age_adjusted <- dta_amy$age_at_scan - alpha_amy[dta_amy$RID_num]
+dta_tau$age_adjusted <- dta_tau$age_at_scan - alpha_tau[dta_tau$RID_num]
+
+### f pred trajectory
+f_amy <- colMedians(samples[,grep("f_pred_amy", colnames(samples))]) * 169.27 - 102.35
+f_amy_upper <- colQuantiles(samples[,grep("f_pred_amy", colnames(samples))], probs = 0.975) * 169.27 - 102.35
+f_amy_lower <- colQuantiles(samples[,grep("f_pred_amy", colnames(samples))], probs = 0.025) * 169.27 - 102.35
+
+plot_data_amy <- data.frame(fp = f_amy, fp_lci = f_amy_lower, fp_uci = f_amy_upper, da = res_d$v_pred)
+
+f_tau <- colMedians(samples[,grep("f_pred_tau", colnames(samples))])
+f_tau_upper <- colQuantiles(samples[,grep("f_pred_tau", colnames(samples))], probs = 0.975)
+f_tau_lower <- colQuantiles(samples[,grep("f_pred_tau", colnames(samples))], probs = 0.025)
+subj_index <- which(dta_tau$RID %in% dta_surv_df$RID)
+plot_data_tau <- data.frame(fp = f_tau, fp_lci = f_tau_lower, fp_uci = f_tau_upper, da = res_d$v_pred)
+
+g2_amy <- ggplot(dta_amy, aes(x = age_adjusted, y = CENTILOIDS, group = RID, color = factor(RID))) +
+geom_point(alpha = 0.6) +
+geom_line(alpha = 0.4) +
+geom_hline(yintercept = simudata$constants$amy_thresh * 169.27 - 102.35, color = "black", linetype = "dashed") +
+xlab("Positivity Age (years)") +
+ylab("Amyloid (CL)") +
+theme_bw() +
+theme(legend.position = "none") + annotate(
+"text",
+x = max(dta_amy$age_adjusted, na.rm = TRUE) - 2,
+y = simudata$constants$amy_thresh * 169.27 - 102.35,
+label = "A+ CL = 24",
+vjust = -0.6,
+size = 3
+) + geom_ribbon(data = plot_data_amy,
+aes(x = da, ymin = fp_lci, ymax = fp_uci),inherit.aes = FALSE, alpha = 0.4) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp_lci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp_uci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp),
+linewidth = 1, inherit.aes = FALSE) + scale_y_continuous(limits = c(-39, 170))
+g2_tau <- ggplot(dta_tau, aes(x = age_adjusted, y = SUVR, group = RID, color = factor(RID))) +
+geom_point(alpha = 0.6) +
+geom_line(alpha = 0.4) +
+geom_hline(yintercept = simudata$constants$tau_thresh, color = "black", linetype = "dashed") +
+xlab("Positivity Age (years)") +
+ylab("Tau (SUVR)") +
+theme_bw() +
+theme(legend.position = "none") + annotate(
+"text",
+x = max(dta_tau$age_adjusted, na.rm = TRUE) - 5,
+y = simudata$constants$tau_thresh,
+label = "T+ SUVR = 1.41",
+vjust = -0.6,
+size = 3
+) +
+geom_ribbon(data = plot_data_tau,
+aes(x = da, ymin = fp_lci, ymax = fp_uci),inherit.aes = FALSE, alpha = 0.4) +
+geom_line(data = plot_data_tau, aes(x = da, y = fp_lci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_tau, aes(x = da, y = fp_uci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_tau, aes(x = da, y = fp),
+linewidth = 1, inherit.aes = FALSE) +
+scale_y_continuous(limits = range(dta_tau$SUVR)) +
+scale_x_continuous(limits = c(-20, 20))
+
+aligned_image <- (g1_amy|g1_tau)/(g2_amy|g2_tau) + plot_annotation(tag_levels = "A")
+aligned_image
+```
+
+```{r fig2 preprocess}
+source('posterior code/real data mcmc_posterior.R')
+source('posterior code/posterior predictive distribution.R')
+source('posterior code/real data bivariate plus survival data cv.R')
+
+
+load(file = "E:/Github/data/Real Data Analysis CV/real_data_cv5.Rdata")
+load(file = "E:/Github/data/Real Data Analysis CV/model_out5.Rdata")
+train_id <- simudata_cv$constants$subject_amy
+test_id <- setdiff(1:1900, train_id)
+
+### f pred trajectory
+samples <- res$samples
+f_amy <- colMedians(samples[,grep("f_pred_amy", colnames(samples))]) * 169.27 - 102.35
+f_amy_upper <- colQuantiles(samples[,grep("f_pred_amy", colnames(samples))], probs = 0.975) * 169.27 - 102.35
+f_amy_lower <- colQuantiles(samples[,grep("f_pred_amy", colnames(samples))], probs = 0.025) * 169.27 - 102.35
+
+plot_data_amy_pred <- data.frame(fp = f_amy, fp_lci = f_amy_lower, fp_uci = f_amy_upper, da = res_d$v_pred)
+
+pred_listf <- realdata_pred(X_amy, X_tau, test_id, simudata$constants$tau_amy_link, dta_surv_df, res$samples, simudata_cv, biomarker = 'amy', type = 'forward')
+posterior_res_forward <- mcchains(posterior_predictions_code,
+                                  pred_listf$simudata_cv,
+                                  monitors = c("alpha", "gamma_amy_post", "rho_post"),
+                                  niter = 5000,
+                                  nburnin = 3000,
+                                  thin = 1,
+                                  nchains = 1,
+                                  fullres = TRUE) # fullres fixed
+
+
+```
+
+```{r fig2}
+
+dta1 <- dta_amy %>%
+  filter(RID_num %in% test_id)
+dta_amy$RID_num[dta_amy$RID_num %in% test_id]
+
+# Observed data
+# dta['CL'] <- NA
+# dta1$CL <- dta1$SUVR * 169.27 - 102.35
+g1_amy_pred <- ggplot(dta1, aes(x = age_at_scan, y = CL, group = RID, color = factor(RID))) +
+  geom_point(alpha = 0.4) +
+  geom_line(alpha = 0.4) +
+  geom_hline(yintercept = simudata$constants$amy_thresh * 169.27 - 102.35, color = "black", linetype = "dashed") +
+  xlab("Age (years)") +
+  ylab("CL") +
+  ggtitle("Amyloid CL") +
+  theme_bw() +
+  theme(legend.position = "none") +  annotate(
+    "text",
+    x = max(dta_amy$age_at_scan, na.rm = TRUE) - 2,
+    y = simudata$constants$amy_thresh * 169.27 - 102.35,
+    label = "CL = 24",
+    vjust = -0.6,
+    size = 3
+  )
+
+g2_amy_pred <- ggplot(dta1, aes(x = age_adjusted, y = CENTILOIDS, group = RID, color = factor(RID))) +
+geom_point(alpha = 0.6) +
+geom_line(alpha = 0.4) +
+geom_hline(yintercept = simudata$constants$amy_thresh * 169.27 - 102.35, color = "black", linetype = "dashed") +
+xlab("Positivity Age (years)") +
+ylab("Amyloid (CL)") +
+theme_bw() +
+theme(legend.position = "none") + annotate(
+"text",
+x = max(dta_amy$age_adjusted, na.rm = TRUE) - 2,
+y = simudata$constants$amy_thresh * 169.27 - 102.35,
+label = "A+ CL = 24",
+vjust = -0.6,
+size = 3
+) + geom_ribbon(data = plot_data_amy,
+aes(x = da, ymin = fp_lci, ymax = fp_uci),inherit.aes = FALSE, alpha = 0.4) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp_lci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp_uci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp),
+linewidth = 1, inherit.aes = FALSE) + scale_y_continuous(limits = c(-39, 170))
+
+
+
+dta2 <- dta_amy %>%
+  filter(RID_num %in% pred_listf$pred_id) %>%
+  group_by(RID) %>%
+  filter(n() > 4) %>%
+  ungroup() %>%
+  filter(RID %in% head(unique(RID), 5)) %>%
+  mutate(gp = if_else(CENTILOIDS > 24, 1, 0))
+# dta2 <- data.frame(SUVR = pred_listf$simudata_pred$data$y_pred_amy,# dage = res$simudata$cModelsim$dd_amy,
+#                   age_at_scan = pred_listf$simudata_pred$constants$t_amy, RID = pred_listf$simudata_pred$constants$subject_amy)
+# dta2['CL'] <- NA
+# dta2$CL <- dta2$SUVR * 169.27 - 102.35
+
+
+samples <- posterior_res_forward$samples
+alpha_amy <- colMedians(samples[,grep("alpha", colnames(samples))])[seq(1, 10, by = 2)]
+alpha_amy_upper <- colQuantiles(samples[,grep("alpha", colnames(samples))], probs = 0.975)[seq(1, 10, by = 2)]
+alpha_amy_lower <- colQuantiles(samples[,grep("alpha", colnames(samples))], probs = 0.025)[seq(1, 10, by = 2)]
+#alpha_amy_sd <- apply(samples[,grep("alpha", colnames(samples))][, seq(1, 3800, by = 2)], 2, sd)
+#xg <- colMeans(samples[,grep("xg", colnames(samples))])
+alpha_amy <- unname(alpha_amy)
+dta2$age_adjusted <- dta2$age_at_scan - alpha_amy[match(dta2$RID_num, sort(unique(dta2$RID_num)))]
+#dta2$age_adjusted <- dta2$age_at_scan - alpha_amy[dta2$RID_num]
+
+
+g2_amy_pred_sub <- ggplot(dta2, aes(x = age_adjusted, y = CL, group = gp, color = factor(gp))) +
+geom_point(alpha = 0.6) +
+#geom_line(alpha = 0.4) +
+facet_grid(~RID_num ) +
+geom_hline(yintercept = simudata$constants$amy_thresh * 169.27 - 102.35, color = "black", linetype = "dashed") +
+xlab("Positivity Age (years)") +
+ylab("Amyloid (CL)") +
+theme_bw() +
+theme(legend.position = "none") + annotate(
+"text",
+x = max(dta2$age_adjusted, na.rm = TRUE) - 2,
+y = simudata$constants$amy_thresh * 169.27 - 102.35,
+label = "A+ CL = 24",
+vjust = -0.6,
+size = 3
+) + geom_ribbon(data = plot_data_amy_pred,
+aes(x = da, ymin = fp_lci, ymax = fp_uci),inherit.aes = FALSE, alpha = 0.4) +
+geom_line(data = plot_data_amy_pred, aes(x = da, y = fp_lci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy_pred, aes(x = da, y = fp_uci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy_pred, aes(x = da, y = fp),
+linewidth = 1, inherit.aes = FALSE) + scale_y_continuous(limits = c(-3, 75))+ scale_x_continuous(limits = c(-20, 15))
+
+aligned_image2 <- (g1_amy_pred|g2_amy_pred)/(g2_amy_pred_sub) + plot_annotation(tag_levels = "A")
+aligned_image2
+
+```

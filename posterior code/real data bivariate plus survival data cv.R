@@ -180,26 +180,28 @@ realdata_pred <- function(
     end_index = 201,
     middle_index = 81,
     lower_limit = -20,
-    upper_limit = 30
+    upper_limit = 30,
+    threshold = 24
 )
 {
   
-  biomarker = 'tau'
-  type = 'forward'
-  step = 1 / 4
-  start_index = 1
-  end_index = 201
-  middle_index = 81
-  lower_limit = -20
-  upper_limit = 30
-  tau_amy_link = simudata$constants$tau_amy_link
+  # biomarker = 'tau'
+  # type = 'forward'
+  # step = 1 / 4
+  # start_index = 1
+  # end_index = 201
+  # middle_index = 81
+  # lower_limit = -20
+  # upper_limit = 30
+  # tau_amy_link = simudata$constants$tau_amy_link
 # filter the idx with backward and forward
+  n_pred <- length(start_index:end_index)
 if(biomarker == 'amy'){
 df_filtered_amy <- dta_amy |>
   dplyr::group_by(RID) |>
   dplyr::filter(
-    any(CENTILOIDS < 24, na.rm = TRUE) &
-      any(CENTILOIDS > 24, na.rm = TRUE)
+    any(CENTILOIDS < threshold, na.rm = TRUE) &
+      any(CENTILOIDS > threshold, na.rm = TRUE)
   ) |>
   dplyr::ungroup()
 
@@ -211,9 +213,9 @@ df_filtered_amy <- dta_amy |>
   dta_amy_cv <- dta_amy[which(dta_amy$RID_num %in% pred_id),]
   
   if(type == 'forward'){
-    dta_amy_cv <-  dta_amy_cv |> dplyr::filter(CENTILOIDS < 24)
+    dta_amy_cv <-  dta_amy_cv |> dplyr::filter(CENTILOIDS < threshold)
   }else if(type == 'backward'){
-    dta_amy_cv <-  dta_amy_cv |> dplyr::filter(CENTILOIDS > 24)
+    dta_amy_cv <-  dta_amy_cv |> dplyr::filter(CENTILOIDS > threshold)
     }
   dta_amy_cv$RID_num <- as.integer(factor(dta_amy_cv$RID))
   rownames(dta_amy_cv) <- NULL
@@ -224,8 +226,8 @@ df_filtered_amy <- dta_amy |>
   df_filtered_tau <- dta_tau |>
     dplyr::group_by(RID) |>
     dplyr::filter(
-      any(SUVR < 1.41, na.rm = TRUE) &
-        any(SUVR > 1.41, na.rm = TRUE)
+      any(SUVR < threshold, na.rm = TRUE) &
+        any(SUVR > threshold, na.rm = TRUE)
     ) |>
     dplyr::ungroup()
   df_filtered_amy <- dta_amy[which(dta_amy$RID %in% unique(df_filtered_tau$RID)),] 
@@ -239,9 +241,9 @@ df_filtered_amy <- dta_amy |>
   rownames(dta_amy_cv) <- NULL
   dta_tau_cv <- dta_tau[which(dta_tau$RID %in% dta_amy_cv$RID),]
   if(type == 'forward'){
-    dta_tau_cv <-  dta_tau_cv |> dplyr::filter(SUVR < 1.41)
+    dta_tau_cv <-  dta_tau_cv |> dplyr::filter(SUVR < threshold)
   }else if(type == 'backward'){
-    dta_tau_cv <-  dta_tau_cv |> dplyr::filter(SUVR > 1.41)
+    dta_tau_cv <-  dta_tau_cv |> dplyr::filter(SUVR > threshold)
   }
   dta_tau_cv$RID_num <- as.integer(factor(dta_tau_cv$RID))
 }
@@ -362,6 +364,7 @@ constants <- list(
 theta <- seq(-9, -3, length = K)
 tinit <- rep(NA, n_subjects_surv)
 tinit[dta_surv_df_cv$censored == 1] <- dta_surv_df_cv$time[dta_surv_df_cv$censored == 1] + 10
+
 inits <- list(theta_amy = theta, theta_tau = theta,
               alpha_amy = age_amy$mean_t, alpha_tau = age_tau$mean_t,
               t = tinit, shape_weib = 1, gamma_weib = c(log(median(dta_surv_df_cv$time, na.rm = TRUE)), rep(0, P)))
