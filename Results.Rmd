@@ -15,10 +15,10 @@ library(nimble)
 ```
 
 ```{r preprocess}
-source("E:/Github/data/Data_preprocess_amy.R")
-source("E:/Github/data/Data_preprocess_tau.R")
-source("E:/Github/data/real data bivariate plus survival data.R")
-load(file = "E:/Github/data/model_out.Rdata")
+source("M:/Bayesian DPM Model/Bayesian DPM Model/Real Data Analysis/Data_preprocess_amy.R")
+source("M:/Bayesian DPM Model/Bayesian DPM Model/Real Data Analysis/Data_preprocess_tau.R")
+source("M:/Bayesian DPM Model/Bayesian DPM Model/Real Data Analysis/real data bivariate plus survival data.R")
+load(file = "M:/Bayesian DPM Model/Bayesian DPM Model/Real Data Analysis/model_out.Rdata")
 samples <- res$samples
 ```
 
@@ -142,12 +142,17 @@ aligned_image
 source('posterior code/real data mcmc_posterior.R')
 source('posterior code/posterior predictive distribution.R')
 source('posterior code/real data bivariate plus survival data cv.R')
+set.seed(123)
+id <- 1:1900
+fold <- sample(rep(1:5, length.out = length(id)))
+fold_list <- split(id, fold)
 
+test_id  <- fold_list[[5]]
 
-load(file = "E:/Github/data/Real Data Analysis CV/real_data_cv5.Rdata")
-load(file = "E:/Github/data/Real Data Analysis CV/model_out5.Rdata")
-train_id <- simudata_cv$constants$subject_amy
-test_id <- setdiff(1:1900, train_id)
+load(file = "M:/Bayesian DPM Model/Bayesian DPM Model/Real Data Analysis/real_data_cv5.Rdata")
+load(file = "M:/Bayesian DPM Model/Bayesian DPM Model/Real Data Analysis/model_out5.Rdata")
+# train_id <- simudata_cv$constants$subject_amy
+# test_id <- setdiff(1:1900, train_id)
 
 ### f pred trajectory
 samples <- res$samples
@@ -171,6 +176,7 @@ posterior_res_forward <- mcchains(posterior_predictions_code,
 ```
 
 ```{r fig2}
+
 
 dta1 <- dta_amy %>%
   filter(RID_num %in% test_id)
@@ -196,7 +202,26 @@ g1_amy_pred <- ggplot(dta1, aes(x = age_at_scan, y = CL, group = RID, color = fa
     size = 3
   )
 
-g2_amy_pred <- ggplot(dta1, aes(x = age_adjusted, y = CENTILOIDS, group = RID, color = factor(RID))) +
+
+dta2 <- dta1 %>%
+  filter(RID_num %in% pred_listf$pred_id) %>%
+  group_by(RID) 
+# dta2 <- data.frame(SUVR = pred_listf$simudata_pred$data$y_pred_amy,# dage = res$simudata$cModelsim$dd_amy,
+#                   age_at_scan = pred_listf$simudata_pred$constants$t_amy, RID = pred_listf$simudata_pred$constants$subject_amy)
+# dta2['CL'] <- NA
+# dta2$CL <- dta2$SUVR * 169.27 - 102.35
+
+samples <- posterior_res_forward$samples
+alpha_amy <- colMedians(samples[,grep("alpha", colnames(samples))])[seq(1, 44, by = 2)]
+alpha_amy_upper <- colQuantiles(samples[,grep("alpha", colnames(samples))], probs = 0.975)[seq(1, 44, by = 2)]
+alpha_amy_lower <- colQuantiles(samples[,grep("alpha", colnames(samples))], probs = 0.025)[seq(1, 44, by = 2)]
+#alpha_amy_sd <- apply(samples[,grep("alpha", colnames(samples))][, seq(1, 3800, by = 2)], 2, sd)
+#xg <- colMeans(samples[,grep("xg", colnames(samples))])
+alpha_amy <- unname(alpha_amy)
+dta2$age_adjusted <- dta2$age_at_scan - alpha_amy[match(dta2$RID_num, sort(unique(dta2$RID_num)))]
+#dta2$age_adjusted <- dta2$age_at_scan - alpha_amy[dta2$RID_num]
+
+g2_amy_pred <- ggplot(dta2, aes(x = age_adjusted, y = CENTILOIDS, group = RID, color = factor(RID))) +
 geom_point(alpha = 0.6) +
 geom_line(alpha = 0.4) +
 geom_hline(yintercept = simudata$constants$amy_thresh * 169.27 - 102.35, color = "black", linetype = "dashed") +
@@ -218,32 +243,13 @@ geom_line(data = plot_data_amy, aes(x = da, y = fp),
 linewidth = 1, inherit.aes = FALSE) + scale_y_continuous(limits = c(-39, 170))
 
 
-
-dta2 <- dta_amy %>%
-  filter(RID_num %in% pred_listf$pred_id) %>%
-  group_by(RID) %>%
+dta3 <- dta2 %>%
   filter(n() > 4) %>%
   ungroup() %>%
   filter(RID %in% head(unique(RID), 5)) %>%
   mutate(gp = if_else(CENTILOIDS > 24, 1, 0))
-# dta2 <- data.frame(SUVR = pred_listf$simudata_pred$data$y_pred_amy,# dage = res$simudata$cModelsim$dd_amy,
-#                   age_at_scan = pred_listf$simudata_pred$constants$t_amy, RID = pred_listf$simudata_pred$constants$subject_amy)
-# dta2['CL'] <- NA
-# dta2$CL <- dta2$SUVR * 169.27 - 102.35
 
-
-samples <- posterior_res_forward$samples
-alpha_amy <- colMedians(samples[,grep("alpha", colnames(samples))])[seq(1, 10, by = 2)]
-alpha_amy_upper <- colQuantiles(samples[,grep("alpha", colnames(samples))], probs = 0.975)[seq(1, 10, by = 2)]
-alpha_amy_lower <- colQuantiles(samples[,grep("alpha", colnames(samples))], probs = 0.025)[seq(1, 10, by = 2)]
-#alpha_amy_sd <- apply(samples[,grep("alpha", colnames(samples))][, seq(1, 3800, by = 2)], 2, sd)
-#xg <- colMeans(samples[,grep("xg", colnames(samples))])
-alpha_amy <- unname(alpha_amy)
-dta2$age_adjusted <- dta2$age_at_scan - alpha_amy[match(dta2$RID_num, sort(unique(dta2$RID_num)))]
-#dta2$age_adjusted <- dta2$age_at_scan - alpha_amy[dta2$RID_num]
-
-
-g2_amy_pred_sub <- ggplot(dta2, aes(x = age_adjusted, y = CL, group = gp, color = factor(gp))) +
+g2_amy_pred_sub <- ggplot(dta3, aes(x = age_adjusted, y = CL, group = gp, color = factor(gp))) +
 geom_point(alpha = 0.6) +
 #geom_line(alpha = 0.4) +
 facet_grid(~RID_num ) +
