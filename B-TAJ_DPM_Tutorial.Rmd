@@ -1,0 +1,442 @@
+---
+title: "B TAJ DPM Tutorial"
+author: "Rong Wu"
+date: "2026-06-01"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(matrixStats)
+library(ggplot2)
+library(patchwork)
+
+source('model/data_gen_new.R')
+source('model/dweibull3.R')
+source('model/data_compile bivariate.R')
+source('model/bayesian dpm bivariate plus survival.R')
+source('model/mcmc_AF_slice bivariate.R')
+source('model/cumulative_trapz.R')
+source('model/simu.R')
+```
+
+
+## Simulation
+
+We simulate longitudinal amyloid and tau biomarker data for 1,000 subjects and fit the Bayesian disease progression model using MCMC. The subsequent plots compare trajectories on the calendar-age scale with posterior-estimated disease-time trajectories after alignment, including uncertainty bands.
+
+```{r gene_data, echo=TRUE, results="hide", warning=FALSE, message=FALSE}
+set.seed(123)
+res <- simu(varying_coef_code_sim, 
+            varying_coef_code,
+            n_subjects = 1000,
+            sa = 10,
+            sy = 0.07,
+            outer_iter = 1,
+            niter = 2000, nburnin = 1000, #thin = 1, 
+            nchains = 1,
+            save_res = F)
+
+```
+
+```{r eval, echo=FALSE, results="hide", warning=FALSE, message=FALSE}
+dta11 <- data.frame(SUVR = res$simudata$cModelsim$y_sparse_amy, dage = res$simudata$cModelsim$dd_amy,
+                  age_at_scan = res$simudata$cModelsim$t_amy, RID = res$simudata$constants$subject_amy)
+
+dta12 <- data.frame(SUVR = res$simudata$cModelsim$y_sparse_tau, dage = res$simudata$cModelsim$dd_tau,
+                  age_at_scan = res$simudata$cModelsim$t_tau, RID = res$simudata$constants$subject_tau)
+
+g1_amy <- ggplot(dta11, aes(x = age_at_scan, y = SUVR, group = RID, color = factor(RID))) +
+  geom_point(alpha = 0.4) +
+  geom_line(alpha = 0.4) +
+  geom_hline(yintercept = 1, color = "black", linetype = "dashed") +
+  xlab("Age (years)") +
+  ylab("CL") +
+  ggtitle("Amyloid CL") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+g1_tau <- ggplot(dta12, aes(x = age_at_scan, y = SUVR, group = RID, color = factor(RID))) +
+  geom_point(alpha = 0.4) +
+  geom_line(alpha = 0.4) +
+  geom_hline(yintercept = 1, color = "black", linetype = "dashed") +
+  xlab("Age (years)") +
+  ylab("SUVR") +
+  ggtitle("Tau SUVR") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+dta_amy <- data.frame(CENTILOIDS = res$simudata$cModelsim$y_sparse_amy, age_adjusted = res$simudata$cModelsim$dd_amy,
+                  age_at_scan = res$simudata$cModelsim$t_amy, RID = res$simudata$constants$subject_amy)
+
+f_amy <- colMedians(res$samples[,grep("f_pred_amy", colnames(res$samples))])
+f_amy_upper <- colQuantiles(res$samples[,grep("f_pred_amy", colnames(res$samples))], probs = 0.975)
+f_amy_lower <- colQuantiles(res$samples[,grep("f_pred_amy", colnames(res$samples))], probs = 0.025) 
+v_pred <- seq(-30, 30, length.out = 250)
+plot_data_amy <- data.frame(fp = f_amy, fp_lci = f_amy_lower, fp_uci = f_amy_upper, da = v_pred)
+
+g2_amy <- ggplot(dta_amy, aes(x = age_adjusted, y = CENTILOIDS, group = RID, color = factor(RID))) +
+geom_point(alpha = 0.6) +
+geom_line(alpha = 0.4) +
+geom_hline(yintercept = 1, color = "black", linetype = "dashed") +
+xlab("Positivity Age (years)") +
+ylab("Amyloid (CL)") +
+theme_bw() +
+theme(legend.position = "none") + annotate(
+"text",
+x = max(dta_amy$age_adjusted, na.rm = TRUE) - 2,
+y = 1,
+label = "Threshold = 1",
+vjust = -0.6,
+size = 3
+) + geom_ribbon(data = plot_data_amy,
+aes(x = da, ymin = fp_lci, ymax = fp_uci),inherit.aes = FALSE, alpha = 0.4) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp_lci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp_uci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp),
+linewidth = 1, inherit.aes = FALSE) + scale_y_continuous(limits = c(0.25, 2))
+
+dta_tau <- data.frame(CENTILOIDS = res$simudata$cModelsim$y_sparse_amy, age_adjusted = res$simudata$cModelsim$dd_amy,
+                  age_at_scan = res$simudata$cModelsim$t_amy, RID = res$simudata$constants$subject_amy)
+
+f_tau <- colMedians(res$samples[,grep("f_pred_tau", colnames(res$samples))])
+f_tau_upper <- colQuantiles(res$samples[,grep("f_pred_tau", colnames(res$samples))], probs = 0.975)
+f_tau_lower <- colQuantiles(res$samples[,grep("f_pred_tau", colnames(res$samples))], probs = 0.025) 
+
+plot_data_tau <- data.frame(fp = f_tau, fp_lci = f_tau_lower, fp_uci = f_tau_upper, da = v_pred)
+
+g2_tau <- ggplot(dta_tau, aes(x = age_adjusted, y = CENTILOIDS, group = RID, color = factor(RID))) +
+geom_point(alpha = 0.6) +
+geom_line(alpha = 0.4) +
+geom_hline(yintercept = 1, color = "black", linetype = "dashed") +
+xlab("Positivity Age (years)") +
+ylab("Tau (SUVR)") +
+theme_bw() +
+theme(legend.position = "none") + annotate(
+"text",
+x = max(dta_amy$age_adjusted, na.rm = TRUE) - 2,
+y = 1,
+label = "Threshold = 1",
+vjust = -0.6,
+size = 3
+) + geom_ribbon(data = plot_data_amy,
+aes(x = da, ymin = fp_lci, ymax = fp_uci),inherit.aes = FALSE, alpha = 0.4) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp_lci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp_uci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp),
+linewidth = 1, inherit.aes = FALSE) + scale_y_continuous(limits = c(0.25, 2))
+
+aligned_image <- (g1_amy|g1_tau)/(g2_amy|g2_tau) + plot_annotation(tag_levels = "A")
+aligned_image
+```
+
+## Posterior prediction
+
+We generate a separate simulated cohort and use posterior draws from the fitted model to predict disease progression for new subjects. The forward-prediction analysis conditions on amyloid observations below the specified threshold, estimates individual time shifts, and visualizes predicted trajectories with posterior uncertainty alongside observed measurements.
+
+```{r create-pred-data, echo=FALSE, results="hide", warning=FALSE, message=FALSE}
+data_1 <- generate_d1(n_subjects = 200,
+                          scenario = 1,
+                          K = 8, 
+                          Kd = 8,
+                          sa = 10,
+                          step = 0.25,
+                          sy = 0.07,
+                          start_index = 1,
+                          end_index = 250,
+                          target_threshold = 1, 
+                          mid_point = 1, 
+                          a_thresh = 1,
+                          C = NULL)
+    
+simudata <- generate_vc(varying_coef_code_sim, data_1, 
+                            scenario = 1, #iter = i,
+                            save_data = FALSE, root = NULL)
+    
+subject_id <- data_1$constants$subject_tau
+subject_tau <- simudata$constants$subject_tau
+cModelsim <- simudata$cModelsim
+    
+data_surv <- data.frame(subject_id, cModelsim$y_sparse_tau, cModelsim$tt) |> 
+      filter(cModelsim.y_sparse_tau >= 1, subject_id %in% subject_tau) |> #filter(cModelsim.t > 5) |> 
+      group_by(subject_id) |>
+      slice_min(cModelsim.tt, n=1, with_ties = F) |>
+      ungroup()
+
+data_surv$censored <- rbinom(nrow(data_surv),1, prob=0.3)
+data_surv$thresh <- 0
+data_surv$thresh[which(data_surv$cModelsim.y_sparse_tau >= 1)] <- 1
+data_surv$t <- data_surv$cModelsim.tt
+data_surv$c <- data_surv$cModelsim.tt
+data_surv$t[data_surv$censored == 1] <- NA
+data_surv$c[data_surv$censored == 0] <- Inf
+    
+    
+    n_subjects <- data_1$constants$n_subjects
+    alpha_tau_pos <- rep(Inf, n_subjects)
+    alpha_tau_pos[which(1:n_subjects %in% data_surv$subject_id)] <- data_surv$cModelsim.tt
+    simudata$constants$alpha_tau_pos = alpha_tau_pos[simudata$constants$tau_amy_link]
+    
+    simudata$constants$n_subjects_surv <- length(data_surv$subject_id)
+    simudata$constants$Xsub_surv <- simudata$constants$Xsub_amy[data_surv$subject_id,]
+    simudata$constants$tau_surv_link <- data_surv$subject_id
+    simudata$constants$c <- data_surv$c
+    
+    tinit <- rep(NA, length(data_surv$subject_id))
+    tinit[data_surv$censored == 1] <- data_surv$cModelsim.tt[data_surv$censored == 1] + 1
+    
+    simudata$inits$tt <- tinit
+    simudata$inits$shape_weib <- 1
+    simudata$inits$gamma_weib <- c(log(median(data_surv$cModelsim.tt, na.rm = TRUE)), rep(0, 2))
+    
+    simudata$inits$gamma_amy <- c(50, 0, 0)
+    simudata$inits$gamma_tau <- c(55, 0, 0)
+    
+    # Need to truncate to respect the constraints of the integral
+    simudata$inits$alpha[2, data_surv$subject_id] <- pmin(
+      data_surv$cModelsim.tt - 1, 
+      simudata$inits$alpha[2, data_surv$subject_id]
+    )
+
+    # Initialize tau to be same dimension as amyloid 
+    
+    simudata$data$censored <- data_surv$censored
+    simudata$data$tt <- data_surv$t
+
+    max_t_tau <- rep(NA, simudata$constants$n_subjects_amy)
+    min_t_tau <- rep(NA, simudata$constants$n_subjects_amy)
+    
+    max_t_tau[simudata$constants$tau_amy_link] <- simudata$constants$max_t_tau
+    min_t_tau[simudata$constants$tau_amy_link] <- simudata$constants$min_t_tau
+    
+    max_t_tau[-simudata$constants$tau_amy_link] <- 0
+    min_t_tau[-simudata$constants$tau_amy_link] <- 120
+    
+    simudata$constants$max_t_tau <- max_t_tau
+    simudata$constants$min_t_tau <- min_t_tau
+    
+    simudata$data$constraint_alpha_tau <- simudata$data$constraint_alpha_amy
+
+
+```
+
+
+```{r fit-pred, echo=TRUE, results="hide", warning=FALSE, message=FALSE}
+source('posterior code/real data bivariate plus survival data cv.R')
+
+dta_amy <- data.frame(CENTILOIDS = simudata$cModelsim$y_sparse_amy, RID_num = data_1$constants$subject_amy,
+                    age_at_scan = simudata$cModelsim$t_amy, RID = simudata$constants$subject_amy)
+
+dta_tau <- data.frame(SUVR = simudata$cModelsim$y_sparse_tau, RID_num = data_1$constants$subject_tau,
+                    age_at_scan = simudata$cModelsim$t_tau, RID = simudata$constants$subject_tau)
+
+# Match the observation column names read by realdata_pred().
+dta_amy$SUVR <- dta_amy$CENTILOIDS
+dta_tau$mesial_temporal_tau_pet_metaroi <- dta_tau$SUVR
+dta_surv_df <- data_surv
+dta_surv_df['RID'] <- dta_surv_df['subject_id']
+dta_surv_df['time'] <- dta_surv_df['t']
+pred_listf <- realdata_pred(X_amy = simudata$constants$Xsub_amy, 
+                            X_tau = simudata$constants$Xsub_tau, 
+                            1:50, simudata$constants$tau_amy_link, dta_surv_df, res$samples, simudata, biomarker = 'amy', type = 'forward', threshold = 1)
+
+# Use the observation ages from the selected prediction data.
+pred_listf$simudata_cv$constants$t_amy <- pred_listf$simudata_pred$constants$t_amy
+pred_listf$simudata_cv$constants$t_tau <- pred_listf$simudata_pred$constants$t_tau
+
+# Map each tau observation to the corresponding subject in the joint alpha matrix.
+pred_listf$simudata_cv$constants$subject_tau <-
+  pred_listf$simudata_cv$constants$tau_amy_link[
+    pred_listf$simudata_pred$constants$subject_tau
+  ]
+
+pred_listf$simudata_cv$inits$gamma_amy <- NULL
+pred_listf$simudata_cv$inits$gamma_tau <- NULL
+
+
+source('posterior code/real data mcmc_posterior.R')
+source('posterior code/posterior predictive distribution.R')
+posterior_res_forward <- mcchains(posterior_predictions_code,
+                                  pred_listf$simudata_cv,
+                                  monitors = c("alpha", "gamma_amy_post", "gamma_tau_post",
+                                               "f_pred_amy_post", "f_pred_tau_post",
+                                               "rho_post"),
+                                  niter = 1000,
+                                  nburnin = 500,
+                                  thin = 1,
+                                  nchains = 1,
+                                  fullres = TRUE)
+
+
+```
+
+```{r plot-pred-desc, echo=FALSE, results="hide", warning=FALSE, message=FALSE}
+dta1 <- data.frame(SUVR = simudata$cModelsim$y_sparse_amy, dage = simudata$cModelsim$dd_amy,
+                  age_at_scan = simudata$cModelsim$t_amy, RID = simudata$constants$subject_amy)
+
+
+g1_amy_pred <- ggplot(dta1, aes(x = age_at_scan, y = SUVR, group = RID, color = factor(RID))) +
+  geom_point(alpha = 0.4) +
+  geom_line(alpha = 0.4) +
+  geom_hline(yintercept = 1, color = "black", linetype = "dashed") +
+  xlab("Age (years)") +
+  ylab("SUVR") +
+  ggtitle("Amyloid SUVR") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+dta2 <- dta1 %>%
+  filter(RID %in% pred_listf$pred_id) %>%
+  filter(RID %in% head(unique(RID), 5)) %>%
+  group_by(RID) 
+# dta2 <- data.frame(SUVR = pred_listf$simudata_pred$data$y_pred_amy,# dage = res$simudata$cModelsim$dd_amy,
+#                   age_at_scan = pred_listf$simudata_pred$constants$t_amy, RID = pred_listf$simudata_pred$constants$subject_amy)
+# dta2['CL'] <- NA
+# dta2$CL <- dta2$SUVR * 169.27 - 102.35
+
+samples <- posterior_res_forward$samples
+alpha_amy <- colMedians(samples[,grep("alpha", colnames(samples))])[seq(1, 10, by = 2)]
+alpha_amy_upper <- colQuantiles(samples[,grep("alpha", colnames(samples))], probs = 0.975)[seq(1, 10, by = 2)]
+alpha_amy_lower <- colQuantiles(samples[,grep("alpha", colnames(samples))], probs = 0.025)[seq(1, 10, by = 2)]
+#alpha_amy_sd <- apply(samples[,grep("alpha", colnames(samples))][, seq(1, 3800, by = 2)], 2, sd)
+#xg <- colMeans(samples[,grep("xg", colnames(samples))])
+alpha_amy <- unname(alpha_amy)
+dta2['age_adjusted'] <- NA
+dta2$age_adjusted <- dta2$age_at_scan - alpha_amy[match(dta2$RID, sort(unique(dta2$RID)))]
+#dta2$age_adjusted <- dta2$age_at_scan - alpha_amy[dta2$RID_num]
+
+f_amy <- colMedians(samples[,grep("f_pred_amy", colnames(samples))])
+f_amy_upper <- colQuantiles(samples[,grep("f_pred_amy", colnames(samples))], probs = 0.975)
+f_amy_lower <- colQuantiles(samples[,grep("f_pred_amy", colnames(samples))], probs = 0.025)
+
+plot_data_amy_pred <- data.frame(fp = f_amy, fp_lci = f_amy_lower, fp_uci = f_amy_upper, da = v_pred)
+
+g2_amy_pred <- ggplot(dta2, aes(x = age_adjusted, y = SUVR, group = RID, color = factor(RID))) +
+geom_point(alpha = 0.6) +
+geom_line(alpha = 0.4) +
+geom_hline(yintercept = 1, color = "black", linetype = "dashed") +
+xlab("Positivity Age (years)") +
+ylab("Amyloid (CL)") +
+theme_bw() +
+theme(legend.position = "none") + annotate(
+"text",
+x = max(dta_amy$age_adjusted, na.rm = TRUE) - 2,
+y = 1,
+label = "Y = 1",
+vjust = -0.6,
+size = 3
+) + geom_ribbon(data = plot_data_amy,
+aes(x = da, ymin = fp_lci, ymax = fp_uci),inherit.aes = FALSE, alpha = 0.4) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp_lci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp_uci), color = "gray50", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy, aes(x = da, y = fp),
+linewidth = 1, inherit.aes = FALSE)# + scale_y_continuous(limits = c(-39, 170))
+
+
+dta3 <- dta2 %>%
+ # filter(n() > 4) %>%
+  ungroup() %>%
+ # filter(RID %in% head(unique(RID), 5)) %>%
+  mutate(gp = if_else(SUVR > 1, 1, 0))
+
+plot_data_amy_pred <- data.frame()
+
+cn <- colnames(samples)
+
+# 如果是 posterior prediction model，优先提取 f_pred_amy_post
+f_prefix <- if (any(startsWith(cn, "f_pred_amy_post["))) {
+  "f_pred_amy_post"
+} else {
+  "f_pred_amy"
+}
+
+f_cols <- cn[startsWith(cn, paste0(f_prefix, "["))]
+f_cols <- f_cols[
+  order(as.integer(sub(".*\\[([0-9]+)\\]$", "\\1", f_cols)))
+]
+
+f <- as.matrix(samples[, f_cols, drop = FALSE])
+
+stopifnot(ncol(f) == length(v_pred))
+
+for (id in 1:5) {
+
+  # Get alpha_amy for subject id
+  alpha <- samples[,grep("alpha", colnames(samples))][,2*id-1]
+
+  # Match prediction ID to original RID
+  dsub <- dta3 %>% filter(RID == pred_listf$pred_id[id])
+
+  # Common calendar-age grid
+  age_grid <- seq(
+    mean(dsub$age_at_scan) - 20,
+    mean(dsub$age_at_scan) + 25,
+    by = 0.25
+  )
+
+  # Align each posterior curve to calendar age
+  f_new <- matrix(
+    NA_real_,
+    nrow = nrow(f),
+    ncol = length(age_grid)
+  )
+
+  for (m in seq_len(nrow(f))) {
+
+    shifted_age <- v_pred + alpha[m]
+
+    f_new[m, ] <- approx(
+      x = shifted_age,
+      y = f[m, ],
+      xout = age_grid,
+      rule = 1
+    )$y
+  }
+
+  # Posterior summaries
+  qfun <- function(x, p) {
+    if (all(is.na(x))) return(NA_real_)
+    unname(quantile(x, probs = p, na.rm = TRUE))
+  }
+
+  f_amy <- apply(f_new, 2, qfun, p = 0.5)
+  f_amy_lower <- apply(f_new, 2, qfun, p = 0.025)
+  f_amy_upper <- apply(f_new, 2, qfun, p = 0.975)
+
+  plot_data_amy_pred_meta <- data.frame(
+    fp = f_amy,
+    fp_lci = f_amy_lower,
+    fp_uci = f_amy_upper,
+    da = age_grid,
+    RID = pred_listf$pred_id[id]
+  )
+
+  plot_data_amy_pred <- rbind(
+    plot_data_amy_pred,
+    plot_data_amy_pred_meta
+  )
+}
+
+
+########
+g2_amy_pred_sub <- ggplot(dta3, aes(x = age_at_scan, y = SUVR, group = gp, color = factor(gp))) + 
+  geom_ribbon(data = plot_data_amy_pred,
+aes(x = da, ymin = fp_lci, ymax = fp_uci),inherit.aes = FALSE, alpha = 0.4) +
+geom_line(data = plot_data_amy_pred, aes(x = da, y = fp_lci), color = "gray80", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy_pred, aes(x = da, y = fp_uci), color = "gray80", linewidth = 0.5, inherit.aes = FALSE) +
+geom_line(data = plot_data_amy_pred, aes(x = da, y = fp),
+linewidth = 1, inherit.aes = FALSE) +
+geom_point(alpha = 0.6, size = 2) +
+#geom_line(alpha = 0.4) +
+geom_hline(yintercept = 1, color = "black", linetype = "dashed") +
+xlab("Positivity Age (years)") +
+ylab("Amyloid (CL)") +
+theme_bw() +
+theme(legend.position = "none") + facet_grid(~RID, scales = "free_x") # + scale_y_continuous(limits = c(-3, 75))+ scale_x_continuous(limits = c(-20, 15))
+
+aligned_image2 <- (g1_amy_pred|g2_amy_pred)/(g2_amy_pred_sub) + plot_annotation(tag_levels = "A")
+aligned_image2
+```
